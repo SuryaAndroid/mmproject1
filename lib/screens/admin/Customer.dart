@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
@@ -12,6 +11,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
+
+
 
 class Customer extends StatefulWidget {
   @override
@@ -179,6 +182,7 @@ class _CustomerState extends State<Customer> {
                                         projectCode.text.toString(),
                                         context
                                     );
+                                    sendMailToClient();
                                   }
                                 },
                                 color: Colors.blue,
@@ -203,6 +207,60 @@ class _CustomerState extends State<Customer> {
       },
     );
   }
+
+
+//send mail
+  void sendMailToClient() async {
+    setState(() {
+      mailId.text.toString();
+      passWd.text.toString();
+      usrNm.text.toString();
+    });
+    print(mailId);
+    print(passWd);
+    print(usrNm);
+    String username = 'durgadevi@mindmade.in';
+    String password = 'Appu#001';
+
+    final smtpServer = gmail(username, password);
+    final equivalentMessage = Message()
+      ..from = Address(username, 'DurgaDevi')
+      ..recipients.add(Address(mailId.text.toString()))
+      // ..ccRecipients.addAll([Address('surya@mindmade.in'), 'destCc2@example.com'])
+    // ..bccRecipients.add('bccAddress@example.com')
+      ..subject = 'Your Credentials ${formatter.format(DateTime.now())}'
+      ..text = '* Username: ${usrNm.text.toString()} \n* Password:${passWd.text.toString()}';
+    // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
+    try {
+      await send(equivalentMessage, smtpServer);
+      print('Message sent: ' + send.toString());
+      Fluttertoast.showToast(
+          msg: 'Customer Credentials send via mail',
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 15.0
+      );
+    } on MailerException catch (e) {
+      print('Message not sent.');
+      for (var p in e.problems) {
+        print('Problem: ${p.code}: ${p.msg}');
+        Fluttertoast.showToast(
+            msg: 'Failed to send credentials',
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 15.0
+        );
+      }
+    }
+  }
+
+//
 
   //Default loader
   showAlert(BuildContext context) {

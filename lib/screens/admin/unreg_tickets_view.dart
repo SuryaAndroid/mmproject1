@@ -10,6 +10,9 @@ import 'package:mmcustomerservice/screens/admin/customerviewpage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
+
 
 class UnRegTickets_View extends StatefulWidget {
   const UnRegTickets_View({Key? key}) : super(key: key);
@@ -284,6 +287,9 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
       if (response.statusCode == 200) {
         String s = await response.stream.bytesToString();
         if("$status"== 'Reject'){
+          setState(() {
+            rejectStatusMail();
+          });
           Fluttertoast.showToast(
               msg: 'Reject Successfully',
               toastLength: Toast.LENGTH_LONG,
@@ -297,6 +303,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
           setState(() {
             AddUnRegUser();
             AddUnRegTicket();
+            approveStatusMail();
           });
           Fluttertoast.showToast(
               msg: 'Approved successfully!',
@@ -321,6 +328,96 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
           fontSize: 15.0);
     }
   }
+
+
+  //send approve mail
+  void approveStatusMail() async {
+    String username = 'durgadevi@mindmade.in';
+    String password = 'Appu#001';
+
+    final smtpServer = gmail(username, password);
+    final equivalentMessage = Message()
+      ..from = Address(username, 'DurgaDevi')
+      ..recipients.add(Address(email))
+     ..ccRecipients.addAll([Address('surya@mindmade.in'),])
+    // ..bccRecipients.add('bccAddress@example.com')
+      ..subject = 'Your Ticket status ${formatter.format(DateTime.now())}'
+      ..text = 'Your Ticket is Approved ';
+    // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
+    try {
+      await send(equivalentMessage, smtpServer);
+      print('Message sent: ' + send.toString());
+      Fluttertoast.showToast(
+          msg: 'Approve send via mail',
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 15.0
+      );
+    } on MailerException catch (e) {
+      print('Message not sent.');
+      for (var p in e.problems) {
+        print('Problem: ${p.code}: ${p.msg}');
+        Fluttertoast.showToast(
+            msg: 'Failed to send Approve',
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 15.0
+        );
+      }
+    }
+  }
+  //
+
+
+  //send reject  mail
+  void rejectStatusMail() async {
+    String username = 'durgadevi@mindmade.in';
+    String password = 'Appu#001';
+
+    final smtpServer = gmail(username, password);
+    final equivalentMessage = Message()
+      ..from = Address(username, 'DurgaDevi')
+      ..recipients.add(Address(email))
+      ..ccRecipients.addAll([Address('surya@mindmade.in'),])
+    // ..bccRecipients.add('bccAddress@example.com')
+      ..subject = 'Your Ticket status ${formatter.format(DateTime.now())}'
+      ..text = 'Your Ticket is Rejected ';
+    // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
+    try {
+      await send(equivalentMessage, smtpServer);
+      print('Message sent: ' + send.toString());
+      Fluttertoast.showToast(
+          msg: 'Rejection send via mail',
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          fontSize: 15.0
+      );
+    } on MailerException catch (e) {
+      print('Message not sent.');
+      for (var p in e.problems) {
+        print('Problem: ${p.code}: ${p.msg}');
+        Fluttertoast.showToast(
+            msg: 'Failed to send Reject',
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 15.0
+        );
+      }
+    }
+  }
+  //
 
 
 
@@ -425,7 +522,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
                         subtitle:Text(pass, style: TextStyle(fontSize: 18, color: Color(0XFF333333)),),
                       ),
                       ListTile(
-                        leading: Icon(Icons.lock),
+                        leading: Icon(Icons.language),
                         title: Text("Domain Name", style: TextStyle(fontSize: 15, color: Colors.black45),),
                         subtitle:Text(domainname, style: TextStyle(fontSize: 18, color: Color(0XFF333333)),),
                       ),

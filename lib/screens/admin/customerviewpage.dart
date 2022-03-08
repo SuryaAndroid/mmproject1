@@ -42,12 +42,6 @@ class _ViewPageState extends State<ViewPage> {
   String datetmFor = DateTime.now().toString();
   DateFormat formatter = DateFormat('dd-MM-yyyy hh:mm:ss a');
   String dateTime = '';
-  int _selectedIndex = 0;
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   //endregion Var
 

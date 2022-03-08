@@ -35,7 +35,8 @@ dependencies:
   permission_handler: ^5.1.0+2 # file picker
   fluttertoast: #Msg
   intl: ^0.17.0 #Date Formate
-  flutter_email_sender: ^5.0.2
+  # flutter_email_sender: ^5.0.2
+  mailer: ^3.2.1
   open_file: #open file
   url_launcher: #Uri operations
   provider: ^5.0.0

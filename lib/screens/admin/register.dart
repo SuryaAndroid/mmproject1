@@ -82,8 +82,9 @@ class _RegisterState extends State<Register> {
       });
       // request.files.add(await http.MultipartFile.fromPath('files', '/path/to/file'));
       http.StreamedResponse response = await request.send();
-      String res = await response.stream.bytesToString();
+      print(response.statusCode);
       if (response.statusCode == 200) {
+        String res = await response.stream.bytesToString();
         Navigator.pop(context);
         if(res.contains('Ticket added successfully')){
           setState(() {
@@ -134,7 +135,7 @@ class _RegisterState extends State<Register> {
         'CreatedOn': formatter.format(DateTime.now()),
       });
       for(int i =0 ; i<files.length ;i++){
-        request.files.add(await http.MultipartFile.fromPath('files', files[i].path,
+        request.files.add(await http.MultipartFile.fromPath('file', files[i].path,
             filename: Path.basename(files[i].path),
             contentType: MediaType.parse(extensions[i].toString())
         ));
@@ -142,15 +143,17 @@ class _RegisterState extends State<Register> {
       // request.files.add(await http.MultipartFile.fromPath('files', '/path/to/file'));
       http.StreamedResponse response = await request.send();
       String res = await response.stream.bytesToString();
+      print(response.statusCode);
       if (response.statusCode == 200) {
-        Navigator.pop(context);
-        if(res.contains('Ticket added successfully')){
+        print('ticket');
+        if(res != 'Ticket added successfully'){
           setState(() {
             Cmpname = TextEditingController();
             Clientname = TextEditingController();
             pass = TextEditingController();
             mailController = TextEditingController();
             phnoController = TextEditingController();
+            userController = TextEditingController();
             domainController = TextEditingController();
             dsController = TextEditingController();
             extensions = [];
@@ -158,7 +161,17 @@ class _RegisterState extends State<Register> {
           });
 
           Fluttertoast.showToast(
-              msg:res.replaceAll("{", "").replaceAll("}", ""),
+              msg: 'Ticket added successfully!',
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 15.0
+          );
+        }else{
+          Fluttertoast.showToast(
+              msg: 'Failed to added Ticket',
               toastLength: Toast.LENGTH_LONG,
               gravity: ToastGravity.BOTTOM,
               timeInSecForIosWeb: 1,
@@ -223,13 +236,12 @@ class _RegisterState extends State<Register> {
               height: 45,
               child: TextFormField(
                 decoration: const InputDecoration(
-                  hintText: 'Enter a Companyname',
-                  labelText: 'Companyname',
-                  // prefixIcon: Icon(Icons.lock_outline_rounded,
-                  //     color: Colors.black45),
+                  hintText: 'Enter a Company name',
+                  labelText: 'Company name',
                   border: OutlineInputBorder(),
                 ),
                 controller:Cmpname ,
+                keyboardType: TextInputType.text,
               ),
             ),
             SizedBox(height:10,),
@@ -237,13 +249,12 @@ class _RegisterState extends State<Register> {
               height: 45,
               child: TextFormField(
                 decoration: const InputDecoration(
-                  hintText: 'Enter a Clientname',
-                  labelText: 'Clientname',
+                  hintText: 'Enter a Client name',
+                  labelText: 'Client name',
                     border: OutlineInputBorder(),
-                    // prefixIcon: Icon(Icons.person,
-                    //   color: Colors.black45),
                 ),
                 controller:Clientname ,
+                keyboardType: TextInputType.text,
               ),
             ),
             SizedBox(height:10,),
@@ -255,10 +266,9 @@ class _RegisterState extends State<Register> {
                   hintText: 'Enter a Username',
                   labelText: 'UserName',
                     border: OutlineInputBorder(),
-                    // prefixIcon: Icon(Icons.person,
-                    //   color: Colors.black45),
                 ),
                 controller:userController ,
+                keyboardType: TextInputType.text,
               ),
             ),
             SizedBox(height:10,),
@@ -270,8 +280,6 @@ class _RegisterState extends State<Register> {
                 obscureText: _obscured,
                 decoration:  InputDecoration(
                   border: OutlineInputBorder(),
-                  // prefixIcon: Icon(Icons.lock_outline_rounded,
-                  //     color: Colors.black45),
                   suffixIcon: GestureDetector(
                       onTap: (){
                         setState(() {
@@ -283,6 +291,7 @@ class _RegisterState extends State<Register> {
                   ),
                   hintText: 'Password',
                 ),
+                keyboardType: TextInputType.visiblePassword,
               ),
             ),
             SizedBox(height:10,),
@@ -294,25 +303,24 @@ class _RegisterState extends State<Register> {
                   hintText: 'Enter a Emailid',
                   labelText: 'Email',
                   border: OutlineInputBorder(),
-                  // prefixIcon: Icon(Icons.mail,
-                  //     color: Colors.black45),
                 ),
                 controller: mailController,
+                keyboardType: TextInputType.emailAddress,
               ),
             ),
             SizedBox(height:10,),
 
             Container(
-              height: 45,
+              height: 65,
               child: TextFormField(
                 decoration: const InputDecoration(
                   hintText: 'Enter a Phonenumber',
                   labelText: 'Phone Number',
                   border: OutlineInputBorder(),
-                  // prefixIcon: Icon(Icons.phone,
-                  //     color: Colors.black45),
                 ),
                 controller: phnoController,
+                keyboardType: TextInputType.phone,
+                maxLength: 10,
               ),
             ),
             SizedBox(height:10,),
@@ -324,10 +332,9 @@ class _RegisterState extends State<Register> {
                   hintText: 'Enter a Domain Name',
                   labelText: 'Domain Name',
                   border: OutlineInputBorder(),
-                  // prefixIcon: Icon(Icons.lock_outline_rounded,
-                  //     color: Colors.black45),
                 ),
                 controller: domainController,
+                keyboardType: TextInputType.text,
               ),
             ),
             SizedBox(height:10,),
@@ -337,12 +344,11 @@ class _RegisterState extends State<Register> {
                   hintText: 'Enter your Issue',
                   labelText: 'Description',
                 border: OutlineInputBorder(),
-                // prefixIcon: Icon(Icons.lock_outline_rounded,
-                //     color: Colors.black45),
               ),
               maxLines: 100,
               minLines: 3,
               controller: dsController,
+              keyboardType: TextInputType.text,
             ),
             SizedBox(height:10,),
                 Row(

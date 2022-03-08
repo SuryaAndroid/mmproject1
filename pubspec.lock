@@ -83,13 +83,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_email_sender:
-    dependency: "direct main"
-    description:
-      name: flutter_email_sender
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "5.0.2"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -149,6 +142,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.3"
+  logging:
+    dependency: transitive
+    description:
+      name: logging
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.11.4"
+  mailer:
+    dependency: "direct main"
+    description:
+      name: mailer
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.3.0"
   matcher:
     dependency: transitive
     description:
@@ -169,7 +176,7 @@ packages:
       name: mime
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "0.9.7"
   nested:
     dependency: transitive
     description:
@@ -212,6 +219,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.4"
+  pedantic:
+    dependency: transitive
+    description:
+      name: pedantic
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.11.1"
   permission_handler:
     dependency: "direct main"
     description:
