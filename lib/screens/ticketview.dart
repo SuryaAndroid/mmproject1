@@ -9,13 +9,11 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
-import 'package:mmcustomerservice/screens/admin/team.dart';
 import 'package:mmcustomerservice/screens/ticket_assign.dart';
 import 'package:mmcustomerservice/ticketsModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart' as fileOpen;
 import 'package:url_launcher/url_launcher.dart';
-import 'image_screen.dart';
 
 class TicketViewPage extends StatefulWidget {
 
@@ -185,97 +183,6 @@ class _TicketViewPageState extends State<TicketViewPage> {
         });
   }
 
-  // Future<void> mailDialog(BuildContext context) async {
-  //   return showDialog(
-  //       context: context,
-  //       builder: (context) {
-  //         return Container(
-  //             width: double.infinity,
-  //             child: AlertDialog(
-  //                 scrollable: true,
-  //                 content: Column(
-  //                   children: <Widget>[
-  //                     Row(
-  //                       children: <Widget>[
-  //                         Padding(
-  //                           padding: const EdgeInsets.all(8.0),
-  //                           child: Text(
-  //                             'Sent status via mail',
-  //                             style: TextStyle(
-  //                               color: Colors.black,
-  //                               fontSize: 16,
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         Expanded(
-  //                             child: Container(
-  //                               alignment: Alignment.centerRight,
-  //                               child: IconButton(
-  //                                 onPressed: () {
-  //                                   Navigator.pop(context);
-  //                                 },
-  //                                 icon: Icon(Icons.close),
-  //                                 color: Colors.red,
-  //                                 iconSize: 25,
-  //                               ),
-  //                             ))
-  //                       ],
-  //                     ),
-  //                     Container(
-  //                       padding: EdgeInsets.all(8),
-  //                       width: double.infinity,
-  //                       alignment: Alignment.centerLeft,
-  //                       child: Text(
-  //                         'UPDATE MAIL $ticketId',
-  //                         style: TextStyle(
-  //                             color: Colors.blue,
-  //                             fontSize: 17,
-  //                             fontWeight: FontWeight.bold),
-  //                       ),
-  //                     ),
-  //                     Container(
-  //                       margin: EdgeInsets.only(right: 10, left: 10),
-  //                       width: double.infinity,
-  //                       alignment: Alignment.center,
-  //                       child: DropdownButtonFormField(
-  //                         value: dropdown,
-  //                         items: status
-  //                             .map<DropdownMenuItem<String>>((String value) {
-  //                           return DropdownMenuItem<String>(
-  //                             value: value,
-  //                             child: Text(value),
-  //                           );
-  //                         }).toList(),
-  //                         onChanged: (String? newValue) {
-  //                           setState(() {
-  //                             dropdown = newValue!;
-  //                           });
-  //                         },
-  //                         hint: Text("select"),
-  //                       ),
-  //                     ),
-  //                     Container(
-  //                         margin: EdgeInsets.only(right: 10, top: 10),
-  //                         width: double.infinity,
-  //                         alignment: Alignment.centerRight,
-  //                         child: RaisedButton(
-  //                             onPressed: () {
-  //                               print("$dropdown");
-  //                               Updateemail(dropdown, context);
-  //                             },
-  //                             color: Colors.blue,
-  //                             child: Text(
-  //                               'Sent',
-  //                               style: TextStyle(
-  //                                 color: Colors.white,
-  //                                 fontSize: 18,
-  //                               ),
-  //                             ))),
-  //                   ],
-  //                 )));
-  //       });
-  // }
-
   showAlert(BuildContext context,String alertText) {
     return showDialog(
         context: context,
@@ -334,35 +241,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
     }
   }
   //endregion Dialogs
-
-  //region Functions
-
-
-  //Sending mail
-  // Future<void> Updateemail(String dropdown, context) async {
-  //   if (dropdown == "Completed") {
-  //     final mail.Email email = mail.Email(
-  //       body: 'Your Problem is solved',
-  //       subject: 'Ticket id ',
-  //       recipients: ['durgavenkatesh805@gmail.com'],
-  //       cc: ['naveensurya9566@gmail.com'],
-  //       bcc: [],
-  //       attachmentPaths: [],
-  //       isHTML: false,
-  //     );
-  //     String platformResponse;
-  //     try {
-  //       await mail.FlutterEmailSender.send(email);
-  //       platformResponse = 'success';
-  //       Navigator.pop(context);
-  //     } catch (error) {
-  //       platformResponse = error.toString();
-  //     }
-  //   } else {
-  //     Navigator.pop(context);
-  //   }
-  // }
-
+  
   //File dwnld
   Future<String> downloadFile(String url, String fileName, String dir) async {
     showAlert(context," Downloading...");
