@@ -41,6 +41,7 @@ dependencies:
   url_launcher: #Uri operations
   provider: ^5.0.0
   mime:
+  flutter_speed_dial:
 
 dev_dependencies:
   flutter_test:

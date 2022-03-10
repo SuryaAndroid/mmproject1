@@ -3,12 +3,14 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/rendering.dart';
 
 class ViewPage extends StatefulWidget {
   @override
@@ -40,8 +42,10 @@ class _ViewPageState extends State<ViewPage> {
   String imgPath = "";
   String createdBy = '';
   String datetmFor = DateTime.now().toString();
-  DateFormat formatter = DateFormat('dd-MM-yyyy hh:mm:ss a');
+  DateFormat formatter = DateFormat('dd-MM-yyyy hh:mm a');
   String dateTime = '';
+
+  bool _dialVisible = true;
 
   //endregion Var
 
@@ -123,36 +127,50 @@ class _ViewPageState extends State<ViewPage> {
   //Function for delete user
   Future<void> deleteCustomer(String usersId,BuildContext context) async {
     print(usersId);
-    var headers = {
-      'Content-Type': 'application/json'
-    };
-    var request = http.Request('PUT', Uri.parse('https://mindmadetech.in/api/customer/delete/$usersId'));
-    request.body = json.encode(<String,String>{
-      "Isdeleted": "y"
-    });
-    request.headers.addAll(headers);
+    try{
+      var headers = {
+        'Content-Type': 'application/json'
+      };
+      var request = http.Request('PUT', Uri.parse('https://mindmadetech.in/api/customer/delete/$usersId'));
+      request.body = json.encode(<String,String>{
+        "Isdeleted": "y"
+      });
+      request.headers.addAll(headers);
 
-    http.StreamedResponse response = await request.send();
+      http.StreamedResponse response = await request.send();
 
-    if (response.statusCode == 200) {
-      String s = await response.stream.bytesToString();
-      if(s.contains("Is deleted : y")){
+      if (response.statusCode == 200) {
+        String s = await response.stream.bytesToString();
+        if(s.contains("Is deleted : y")){
+          Navigator.of(context,rootNavigator: true).pop();
+          Fluttertoast.showToast(
+              msg: 'Customer deleted successfully!',
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 15.0
+          );
+          Navigator.of(context,rootNavigator: true).pop();
+        }else{
+          Navigator.of(context,rootNavigator: true).pop();
+          Fluttertoast.showToast(
+              msg: 'Failed to remove!',
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 15.0
+          );
+        }
+      }
+      else {
+        print(response.reasonPhrase);
         Navigator.of(context,rootNavigator: true).pop();
         Fluttertoast.showToast(
-            msg: 'Customer deleted successfully!',
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.green,
-            textColor: Colors.white,
-            fontSize: 15.0
-        );
-        Navigator.of(context,rootNavigator: true).pop();
-        // Navigator.push(context, MaterialPageRoute(builder: (context)=>Customer(isDel:"y")));
-      }else{
-        Navigator.of(context,rootNavigator: true).pop();
-        Fluttertoast.showToast(
-            msg: 'Failed to remove!',
+            msg: response.reasonPhrase.toString(),
             toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
             timeInSecForIosWeb: 1,
@@ -161,21 +179,66 @@ class _ViewPageState extends State<ViewPage> {
             fontSize: 15.0
         );
       }
-    }
-    else {
-      print(response.reasonPhrase);
-      Navigator.of(context,rootNavigator: true).pop();
-      Fluttertoast.showToast(
-          msg: response.reasonPhrase.toString(),
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 15.0
-      );
+    }catch(ex){
+      Navigator.pop(context);
+      onNetworkChecking(context);
+      print(ex);
     }
   }
+
+
+  //Network
+  onNetworkChecking(context) async {
+    bool isOnline = await hasNetwork();
+    if (isOnline == false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('You are Offline!',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14,
+                    fontWeight: FontWeight.bold)
+            ),
+            backgroundColor: Color(0xffcd5c5c),
+            margin: EdgeInsets.only(left: 100,
+                right: 100,
+                bottom: 15),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(
+                    Radius.circular(20))),
+          ));
+    }
+    else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Back to online!',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14,
+                    fontWeight: FontWeight.bold)
+            ),
+            backgroundColor: Colors.green,
+            margin: EdgeInsets.only(left: 100,
+                right: 100,
+                bottom: 10),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(
+                    Radius.circular(20))),
+          ));
+    }
+    return isOnline;
+  }
+
+  Future<bool> hasNetwork() async {
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      //networkStatus = "offline";
+      return false;
+    }
+  }
+  //Network
 
   Future<void> getdata()async {
     var pref = await SharedPreferences.getInstance();
@@ -201,54 +264,97 @@ class _ViewPageState extends State<ViewPage> {
   //Update the user details
   Future<void> updateUser(String cmp, String usr, String pass, String mailid,String phone, String client , BuildContext context) async {
     showAlert(context);
-    var request = http.MultipartRequest('PUT', Uri.parse('https://mindmadetech.in/api/customer/update/$usersId'));
-    if(_image.path==""){
-      request.fields.addAll({
-        'Logo': Logo,
-        'Companyname':cmp,
-        'Clientname':client,
-        'Username': usr,
-        'Password':pass,
-        'Email': mailid,
-        'Phonenumber': phone,
-        'Projectcode':'$proCode',
-        'Createdon': Createdon,
-        'Createdby': Createdby,
-        'Modifiedon': formatter.format(DateTime.now()),
-        'Modifiedby': createdBy
-      });
-    }else{
-      request.files.add(
-          await http.MultipartFile.fromPath('file', _image.path,filename:basename(_image.path) ,
-              contentType: MediaType.parse("image/$extention")
-          )
-      );
-      request.fields.addAll({
-        'Companyname':cmp,
-        'Clientname':client,
-        'Username': usr,
-        'Password':pass,
-        'Email': mailid,
-        'Phonenumber': phone,
-        'Createdon': Createdon,
-        'Createdby': Createdby,
-        'Projectcode':'$proCode',
-        'Modifiedon': formatter.format(DateTime.now()),
-        'Modifiedby': createdBy
-      });
-    }
+    try{
+      var request = http.MultipartRequest('PUT', Uri.parse('https://mindmadetech.in/api/customer/update/$usersId'));
+      if(_image.path==""){
+        request.fields.addAll({
+          'Logo': Logo,
+          'Companyname':cmp,
+          'Clientname':client,
+          'Username': usr,
+          'Password':pass,
+          'Email': mailid,
+          'Phonenumber': phone,
+          'Projectcode':'$proCode',
+          'Createdon': Createdon,
+          'Createdby': Createdby,
+          'Modifiedon': formatter.format(DateTime.now()),
+          'Modifiedby': createdBy
+        });
+      }else{
+        request.files.add(
+            await http.MultipartFile.fromPath('file', _image.path,filename:basename(_image.path) ,
+                contentType: MediaType.parse("image/$extention")
+            )
+        );
+        request.fields.addAll({
+          'Companyname':cmp,
+          'Clientname':client,
+          'Username': usr,
+          'Password':pass,
+          'Email': mailid,
+          'Phonenumber': phone,
+          'Createdon': Createdon,
+          'Createdby': Createdby,
+          'Projectcode':'$proCode',
+          'Modifiedon': formatter.format(DateTime.now()),
+          'Modifiedby': createdBy
+        });
+      }
 
-    http.StreamedResponse response = await request.send();
+      http.StreamedResponse response = await request.send();
 
-    if (response.statusCode == 200) {
-      String res = await response.stream.bytesToString();
-      //print(await response.stream.bytesToString());
-      if(res.contains("Customer details updated successfully")){
-        _image == File("");
+      if (response.statusCode == 200) {
+        String res = await response.stream.bytesToString();
+        if(res.contains("Customer details updated successfully")){
+          _image == File("");
+          Navigator.of(context,rootNavigator: true).pop();
+          Navigator.of(context,rootNavigator: true).pop();
+          Fluttertoast.showToast(
+              msg: 'Changes saved!',
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 15.0
+          );
+          setState(() {
+            usersId = usersId;
+            username= usr;
+            password= pass;
+            phonenumber= phone;
+            address= address;
+            Companyname= cmp;
+            email= mailid;
+            Logo= Logo;
+            Clientname= client;
+            Createdon= Createdon;
+            Createdby= Createdby;
+            Modifiedon= formatter.format(DateTime.now());
+            Modifiedby= createdBy;
+          });
+        }else{
+          _image == File("");
+          Navigator.of(context,rootNavigator: true).pop();
+          Navigator.of(context,rootNavigator: true).pop();
+          Fluttertoast.showToast(
+              msg: 'Something went wrong!',
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 15.0
+          );
+        }
+      }
+      else {
+        print(response.reasonPhrase);
         Navigator.of(context,rootNavigator: true).pop();
         Navigator.of(context,rootNavigator: true).pop();
         Fluttertoast.showToast(
-            msg: 'Changes saved!',
+            msg: response.reasonPhrase.toString(),
             toastLength: Toast.LENGTH_LONG,
             gravity: ToastGravity.BOTTOM,
             timeInSecForIosWeb: 1,
@@ -256,52 +362,182 @@ class _ViewPageState extends State<ViewPage> {
             textColor: Colors.white,
             fontSize: 15.0
         );
-        setState(() {
-          usersId = usersId;
-          username= usr;
-          password= pass;
-          phonenumber= phone;
-          address= address;
-          Companyname= cmp;
-          email= mailid;
-          Logo= Logo;
-          Clientname= client;
-          Createdon= Createdon;
-          Createdby= Createdby;
-          Modifiedon= formatter.format(DateTime.now());
-          Modifiedby= createdBy;
-        });
-      }else{
-        _image == File("");
-        Navigator.of(context,rootNavigator: true).pop();
-        Navigator.of(context,rootNavigator: true).pop();
-        Fluttertoast.showToast(
-            msg: 'Something went wrong!',
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-            fontSize: 15.0
-        );
       }
-    }
-    else {
-      print(response.reasonPhrase);
-      Navigator.of(context,rootNavigator: true).pop();
-      Navigator.of(context,rootNavigator: true).pop();
-      Fluttertoast.showToast(
-          msg: response.reasonPhrase.toString(),
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 15.0
-      );
+    }catch(ex){
+      Navigator.pop(context);
+      onNetworkChecking(context);
+      print(ex);
     }
   }
   //endregion Functions
+
+//edit dialog
+  void showeditDialog(context) {
+    TextEditingController compName = new TextEditingController(text: "$Companyname")
+    , usrNm = new TextEditingController(text: "$username") , passWd = new TextEditingController(text: "$password") ,
+        mailId  = new TextEditingController(text: "$email"),
+        phnNum = new TextEditingController(text: "$phonenumber"),clientNm = new TextEditingController(text: "$Clientname");
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+                scrollable: true,
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Center(
+                      child: GestureDetector(
+                        onTap: () async {
+                          //_FilePicker();
+                          FilePickerResult? result = await FilePicker.platform
+                              .pickFiles(
+                            type: FileType.image,
+                            //allowedExtensions: ['jpg','png','jpeg'],
+                          );
+                          PlatformFile file = result.files.first;
+                          if (result != null) {
+                            setState(() {
+                              _image = new File(file.path);
+                              imgPath = file.path.toString();
+                            });
+                            extention = file.extension;
+                            print("this is image : " +
+                                _image.absolute.path.toString());
+                          }
+                        },
+                        child: imgPath == "" ? CircleAvatar(
+                          backgroundImage: NetworkImage(Logo),
+                          radius: 45,
+                        ) : CircleAvatar(
+                          backgroundImage: FileImage(File('$imgPath')),
+                          radius: 45,
+                        ),
+                      ),
+                    ),
+
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        hintText: 'Enter your Company name',
+                        labelText: 'Company name',
+                      ),
+                      controller: compName,
+                      keyboardType: TextInputType.text,
+                    ),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        hintText: 'Enter a Username',
+                        labelText: 'Username',
+                      ),
+                      controller: usrNm,
+                      keyboardType: TextInputType.text,
+                    ),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        hintText: 'Enter a Clientname',
+                        labelText: 'Client name',
+                      ),
+                      controller: clientNm,
+                      keyboardType: TextInputType.text,
+                    ),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        hintText: 'Password here',
+                        labelText: 'Password',
+                      ),
+                      controller: passWd,
+                      keyboardType: TextInputType.visiblePassword,
+                    ),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        hintText: 'Email here',
+                        labelText: 'Email',
+                      ),
+                      controller: mailId,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        hintText: 'Enter a phone number',
+                        labelText: 'Phonenumber',
+                      ),
+                      controller: phnNum,
+                      maxLength: 10,
+                      keyboardType: TextInputType.phone,
+                    ),
+                    Container(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                              padding: EdgeInsets.only(top: 10.0),
+                              child: new RaisedButton(
+                                child: const Text(
+                                  'Submit',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                onPressed: () {
+                                  if (compName.text.isEmpty ||
+                                      usrNm.text.isEmpty ||
+                                      passWd.text.isEmpty ||
+                                      mailId.text.isEmpty ||
+                                      phnNum.text.length < 10 ||
+                                      clientNm.text.isEmpty
+                                  ) {
+                                    Fluttertoast.showToast(
+                                        msg: 'please check the values!',
+                                        toastLength: Toast.LENGTH_LONG,
+                                        gravity: ToastGravity.BOTTOM,
+                                        timeInSecForIosWeb: 1,
+                                        backgroundColor: Colors.red,
+                                        textColor: Colors.white,
+                                        fontSize: 15.0
+                                    );
+                                    print("value not entered......");
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('please check the values!'),
+                                          backgroundColor: Colors.red,
+                                          behavior: SnackBarBehavior.floating,
+                                        )
+                                    );
+                                  } else {
+                                    updateUser(
+                                        compName.text.toString(),
+                                        usrNm.text.toString(),
+                                        passWd.text.toString(),
+                                        mailId.text.toString(),
+                                        phnNum.text.toString(),
+                                        clientNm.text.toString(),
+                                        context
+                                    );
+                                  }
+                                },
+                                color: Colors.blue,
+                              )),
+                          Container(
+                            padding: EdgeInsets.only(top: 10.0, left: 5),
+                            child: TextButton(
+                              onPressed: () => Navigator.pop(context, 'Cancel'),
+                              child: Text(
+                                'Cancel',
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                  ],
+                ));
+          },
+        );
+      },
+    );
+  }
+//
 
   @override
   void dispose() {
@@ -323,42 +559,41 @@ class _ViewPageState extends State<ViewPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
-      bottomSheet: BottomSheet(
-        backgroundColor: Colors.blue[300],
-        onClosing: () {  },
-        builder: (BuildContext context) {
-        return Container(
-          height: 70,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-            Column(
-                  children: [
-                    IconButton(onPressed: (){
-                      showeditDailog(context);
-                    }, icon: Icon(Icons.edit),),
-                    Text('Update'),
-                  ],
-                ),
-           Column(
-             children: [
-               IconButton(onPressed: (){
-                      deleteDialog(context);
-
-                    }, icon: Icon(Icons.delete_forever),),
-               Text('Delete'),
-
-             ],
-           ),
-
-            ],
+      floatingActionButton: SpeedDial(
+        animatedIcon: AnimatedIcons.menu_close,
+        animatedIconTheme: IconThemeData(size: 22.0),
+        visible: _dialVisible,
+        curve: Curves.bounceIn,
+        overlayColor: Colors.black12,
+       overlayOpacity: 0.5,
+        onOpen: () => print('OPENING DIAL'),
+        onClose: () => print('DIAL CLOSED'),
+        tooltip: 'Speed Dial',
+        heroTag: 'speed-dial-hero-tag',
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        elevation: 8.0,
+        shape: CircleBorder(),
+        children: [
+          SpeedDialChild(
+              child: Icon(Icons.edit,color: Colors.green,size: 27,),
+              backgroundColor: Colors.white,
+              label: 'Update',
+              labelStyle: TextStyle(fontSize: 17.0),
+              onTap: () =>  showeditDialog(context)
           ),
-        );
-        },
+          SpeedDialChild(
+            child: Icon(Icons.delete_forever,color: Colors.red,size: 27,),
+            backgroundColor: Colors.white,
+            label: 'delete',
+            labelStyle: TextStyle(fontSize:17.0),
+            onTap: () => deleteDialog(context)
+
+          ),
+        ],
       ),
+
       body: Stack(
           children: [
             ClipPath(
@@ -417,10 +652,9 @@ class _ViewPageState extends State<ViewPage> {
               top: 200,
               left: 10,
               child:  SingleChildScrollView(
-                 // physics: NeverScrollableScrollPhysics(),
                     child: Container(
                       padding: EdgeInsets.only(bottom: 45,top:0),
-                      height: MediaQuery.of(context).size.height*0.7,
+                      height: MediaQuery.of(context).size.height*0.8,
                       width: MediaQuery.of(context).size.width,
                       child:ListView(
                         //shrinkWrap: true,
@@ -483,191 +717,17 @@ class _ViewPageState extends State<ViewPage> {
                       ),
                     ),
                 ),
-              ),
+              )
+    ]
+    ));
 
-      ]
-      )
-
-    );
   }
 
-
-  void showeditDailog(context) {
-    TextEditingController compName = new TextEditingController(text: "$Companyname")
-    , usrNm = new TextEditingController(text: "$username") , passWd = new TextEditingController(text: "$password") ,
-        mailId  = new TextEditingController(text: "$email"),
-        phnNum = new TextEditingController(text: "$phonenumber"),clientNm = new TextEditingController(text: "$Clientname");
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-                scrollable: true,
-                content: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Center(
-                      child: GestureDetector(
-                        onTap: () async {
-                          //_FilePicker();
-                          FilePickerResult? result = await FilePicker.platform
-                              .pickFiles(
-                            type: FileType.image,
-                            //allowedExtensions: ['jpg','png','jpeg'],
-                          );
-                          PlatformFile file = result.files.first;
-                          if (result != null) {
-                            setState(() {
-                              _image = new File(file.path);
-                              imgPath = file.path.toString();
-                            });
-                            extention = file.extension;
-                            print("this is image : " +
-                                _image.absolute.path.toString());
-                          }
-                        },
-                        child: imgPath == "" ? CircleAvatar(
-                          backgroundImage: NetworkImage(Logo),
-                          radius: 45,
-                        ) : CircleAvatar(
-                          backgroundImage: FileImage(File('$imgPath')),
-                          radius: 45,
-                        ),
-                      ),
-                    ),
-
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        hintText: 'Enter your Company name',
-                        labelText: 'Company name',
-                      ),
-                      controller: compName,
-                      keyboardType: TextInputType.text,
-                    ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        hintText: 'Enter a Username',
-                        labelText: 'Username',
-                      ),
-                      controller: usrNm,
-                      keyboardType: TextInputType.text,
-                      //initialValue: '$username',
-                    ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        hintText: 'Enter a Clientname',
-                        labelText: 'Client name',
-                      ),
-                      controller: clientNm,
-                      keyboardType: TextInputType.text,
-                      //initialValue: '$username',
-                    ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        hintText: 'Password here',
-                        labelText: 'Password',
-                      ),
-                      controller: passWd,
-                      keyboardType: TextInputType.visiblePassword,
-                      //initialValue: '$password',
-                    ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        hintText: 'Email here',
-                        labelText: 'Email',
-                      ),
-                      controller: mailId,
-                      keyboardType: TextInputType.emailAddress,
-                      //initialValue: '$email',
-                    ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        hintText: 'Enter a phone number',
-                        labelText: 'Phonenumber',
-                      ),
-                      controller: phnNum,
-                      maxLength: 10,
-                      keyboardType: TextInputType.phone,
-                      //initialValue: '$phonenumber',
-                    ),
-                    Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Container(
-                              padding: EdgeInsets.only(top: 10.0),
-                              child: new RaisedButton(
-                                child: const Text(
-                                  'Submit',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                onPressed: () {
-                                  if (compName.text.isEmpty ||
-                                      usrNm.text.isEmpty ||
-                                      passWd.text.isEmpty ||
-                                      mailId.text.isEmpty ||
-                                      phnNum.text.length < 10 ||
-                                      clientNm.text.isEmpty
-                                  ) {
-                                    Fluttertoast.showToast(
-                                        msg: 'please check the values!',
-                                        toastLength: Toast.LENGTH_LONG,
-                                        gravity: ToastGravity.BOTTOM,
-                                        timeInSecForIosWeb: 1,
-                                        backgroundColor: Colors.red,
-                                        textColor: Colors.white,
-                                        fontSize: 15.0
-                                    );
-                                    print("value not entered......");
-                                    //Navigator.pop(context);
-                                    // ScaffoldMessenger.of(context).showSnackBar(
-                                    //   SnackBar(content: Text('please check the values!'),
-                                    //   backgroundColor: Colors.red,
-                                    //     behavior: SnackBarBehavior.floating,
-                                    //   )
-                                    // );
-                                  } else {
-                                    updateUser(
-                                        compName.text.toString()
-                                        ,
-                                        usrNm.text.toString(),
-                                        passWd.text.toString(),
-                                        mailId.text.toString(),
-                                        phnNum.text.toString(),
-                                        clientNm.text.toString(),
-                                        context
-                                    );
-                                  }
-                                },
-                                color: Colors.blue,
-                              )),
-                          Container(
-                            padding: EdgeInsets.only(top: 10.0, left: 5),
-                            child: TextButton(
-                              onPressed: () => Navigator.pop(context, 'Cancel'),
-                              child: Text(
-                                'Cancel',
-                                style: TextStyle(fontSize: 18),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    )
-                  ],
-                ));
-          },
-        );
-      },
-    );
-  }
 
 
 
 }
-
+//background design using paint
 class MyClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
@@ -687,3 +747,4 @@ class MyClipper extends CustomClipper<Path> {
     return false;
   }
 }
+//

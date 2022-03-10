@@ -20,11 +20,12 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
   String currentUser='';
   _UnRegister_TicketsState({required this.usertype, required this.currentUser, });
 
-
+//region var
   List<GetUnreg> unRegTickets = [];
   bool retryVisible = false;
+//end region
 
-
+  //default loader
   showAlert(BuildContext context) {
     return showDialog(
         context: context,
@@ -47,7 +48,9 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
                   )));
         });
   }
+  //end loader
 
+  //fetch reg user
   Future<void> fetchRegTickets() async {
     showAlert(context);
     try {
@@ -86,8 +89,9 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
       onNetworkChecking();
     }
   }
+  //end reg
 
-
+//network checking
   onNetworkChecking() async {
     bool isOnline = await hasNetwork();
     if (isOnline == false) {
@@ -139,6 +143,7 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
       return false;
     }
   }
+  //end network
 
   Future<void> refreshListener() async{
     setState(() {
@@ -146,6 +151,7 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
     });
   }
 
+  //pref data
   Future<void> ticketsDataToView(int index) async {
     print('username');
     print(unRegTickets[index].UserName);
@@ -185,7 +191,7 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
 
     Navigator.push(context,MaterialPageRoute(builder: (context)=>UnRegTickets_View()));
   }
-
+  //end pref
 
     @override
   void initState() {
@@ -206,7 +212,6 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
       ),
       body: SingleChildScrollView(
         child: Container(
-         // padding: EdgeInsets.only(bottom: 10),
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
           child: RefreshIndicator(
@@ -237,7 +242,6 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
                   ListView.builder(
                     itemCount: unRegTickets.length,
                       shrinkWrap: true,
-                     // physics: NeverScrollableScrollPhysics(),
                       itemBuilder: (BuildContext context,int index){
                     return Column(
                       children: [
@@ -251,7 +255,6 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
                               radius:30,
                               backgroundImage: NetworkImage(unRegTickets[index].logo),
                             ),
-                           // title:Text(unRegTickets[index].UserName),
                                title: Text(unRegTickets[index].UserName!=null?unRegTickets[index].UserName[0].toUpperCase()+unRegTickets[index].UserName.substring(1):'unnamed', style: TextStyle(
                                    fontSize: 17.5),),
                             subtitle: Text(unRegTickets[index].createdOn!=null?unRegTickets[index].createdOn:'not found'),

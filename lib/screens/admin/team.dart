@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:mmcustomerservice/screens/admin/teamview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TeamList extends StatefulWidget {
@@ -39,6 +38,7 @@ class _TeamListState extends State<TeamList> {
     });
   }
 
+  //fetch team
   Future<void> fetchTeam() async {
     showAlert(context);
     try {
@@ -52,23 +52,19 @@ class _TeamListState extends State<TeamList> {
           retryVisible = false;
           teamList = body.map((e) => GetTeam.fromJson(e)).toList();
         });
-      } else {
-        setState(() {
-          retryVisible = false;
-        });
-        Navigator.pop(context);
-        onNetworkChecking();
       }
     } catch (ex) {
       setState(() {
         retryVisible = false;
       });
-      // Navigator.pop(context);
+      Navigator.pop(context);
       onNetworkChecking();
     }
   }
+  //end
 
-  Future<void> deletetmDailog(BuildContext context,int  index) async {
+  //delete tm dialog
+  Future<void> deletetmDialog(BuildContext context,int  index) async {
     return showDialog(
         context: context,
         builder: (context) {
@@ -94,7 +90,7 @@ class _TeamListState extends State<TeamList> {
                   },
                       child: Text('No', style: TextStyle(fontSize: 16),)),
                   TextButton(onPressed: () {
-                    deleteAlbum(teamList[index].teamId);
+                    deletetm(teamList[index].teamId);
                     Navigator.pop(context);
                   },
                       child: Text('Yes', style: TextStyle(fontSize: 16),))
@@ -104,7 +100,9 @@ class _TeamListState extends State<TeamList> {
         }
     );
   }
+  //end
 
+  //edit tm dialog
   Future<void> edittm(BuildContext context,int index) async {
     return showDialog(
         context: context,
@@ -181,8 +179,9 @@ class _TeamListState extends State<TeamList> {
           );
         });
   }
+  //end
 
-
+  //default loader
   showAlert(BuildContext context) {
     return showDialog(
         context: context,
@@ -205,7 +204,9 @@ class _TeamListState extends State<TeamList> {
                   )));
         });
   }
+  //end
 
+  //network checking
   onNetworkChecking() async {
     bool isOnline = await hasNetwork();
     if (isOnline == false) {
@@ -243,7 +244,7 @@ class _TeamListState extends State<TeamList> {
       return false;
     }
   }
-
+  //end
   /*Future<void> passdata(int index) async {
    var pref = await SharedPreferences.getInstance();
 
@@ -264,7 +265,7 @@ class _TeamListState extends State<TeamList> {
          builder: (context) => TeamViewPage()),
    );
  }*/
-
+  //add team dialog
   Future<void> AddtmPopup(BuildContext context) async {
     return showDialog(
         context: context,
@@ -348,7 +349,8 @@ class _TeamListState extends State<TeamList> {
               ));
         });
   }
-
+  //end
+  //add team
   Future<void> Addteam(String Username, String Password, String Team) async {
     showAlert(context);
     try {
@@ -384,6 +386,7 @@ class _TeamListState extends State<TeamList> {
       onNetworkChecking();
     }
   }
+  //end
 
   Future<void> getPref() async {
     var pref = await SharedPreferences.getInstance();
@@ -485,7 +488,6 @@ class _TeamListState extends State<TeamList> {
                         ),
                       ],
                     ),
-
                     value: 1,
                   ),
                   PopupMenuItem(
@@ -626,7 +628,6 @@ class _TeamListState extends State<TeamList> {
                                 Container(
                                   child: ExpansionTile(
                                     leading:
-                                    //Icon(Icons.calendar_today, size: 35, color: Colors.green,),
                                     Container(
                                         child:Stack(
                                           children: [
@@ -712,7 +713,7 @@ class _TeamListState extends State<TeamList> {
                                                   child: IconButton(
                                                     icon: Icon(Icons.delete),
                                                     onPressed: () {
-                                                      deletetmDailog(context,index);
+                                                      deletetmDialog(context,index);
                                                     },
                                                   ),
                                                 ),
@@ -839,7 +840,7 @@ class _TeamListState extends State<TeamList> {
                                                   child: IconButton(
                                                     icon: Icon(Icons.delete),
                                                     onPressed: () {
-                                                      deletetmDailog(context,index);
+                                                      deletetmDialog(context,index);
                                                     },
                                                   ),
                                                 ),
@@ -848,7 +849,6 @@ class _TeamListState extends State<TeamList> {
                                           )
                                         ],
                                       )
-
                                     ],
                                   ),
 
@@ -867,85 +867,115 @@ class _TeamListState extends State<TeamList> {
   //update tm
   Future<void> updateTeam(String name, String Pass, String tm,int index) async {
     String teamId = teamList[index].teamId;
-    final response = await http.put(
-      Uri.parse('https://mindmadetech.in/api/team/update/$teamId'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'Username': name,
-        'Password': Pass,
-        'Team':tm
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      print( teamList[index].Username );
-      Fluttertoast.showToast(
-          msg: 'Updated Successfully',
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 15.0
+    try{
+      final response = await http.put(
+        Uri.parse('https://mindmadetech.in/api/team/update/$teamId'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'Username': name,
+          'Password': Pass,
+          'Team':tm
+        }),
       );
-      setState((){
-        teamList[index].Username = name;
-        teamList[index].Password= Pass;
-        teamList[index].Team= tm;
-      });
-    } else {
-      Fluttertoast.showToast(
-          msg: 'Failed to Update Team!',
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 15.0);
-      setState((){
-        teamList[index].Username = name;
-        teamList[index].Password= Pass;
-        teamList[index].Team= tm;
-      });
-      throw Exception('Failed to update album.');
-    }
-  }
-}
-//delete tm
-Future<GetTeam> deleteAlbum(String teamId) async {
-  final  response = await http.put(
-      Uri.parse('https://mindmadetech.in/api/team/delete/$teamId'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'Isdeleted': "y",
-      }
-      ));
 
-  if (response.statusCode == 200) {
-    Fluttertoast.showToast(
-        msg: 'Team detials deleted Successfully',
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 15.0);
-    return GetTeam.fromJson(jsonDecode(response.body));
-  } else {
-    Fluttertoast.showToast(
-        msg: 'Failed to Delete Team Detials!',
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 15.0);
-    throw Exception('Failed to delete album.');
-  }
+      if (response.statusCode == 200) {
+        print( teamList[index].Username );
+        Fluttertoast.showToast(
+            msg: 'Updated Successfully',
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 15.0
+        );
+        setState((){
+          teamList[index].Username = name;
+          teamList[index].Password= Pass;
+          teamList[index].Team= tm;
+        });
+      } else {
+        Fluttertoast.showToast(
+            msg: 'Failed to Update Team!',
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 15.0);
+        setState((){
+          teamList[index].Username = name;
+          teamList[index].Password= Pass;
+          teamList[index].Team= tm;
+        });
+        throw Exception('Failed to update album.');
+      }
+    }catch(ex){
+      Navigator.pop(context);
+      onNetworkChecking();
+    }
+    }
+
+
+//delete tm
+    Future<void> deletetm(String teamId) async{
+    try{
+      var headers = {
+        'Content-Type': 'application/json'
+      };
+      var request = http.Request('PUT', Uri.parse('https://mindmadetech.in/api/team/delete/$teamId'));
+      request.body = json.encode(<String,String>{
+        "Isdeleted": "y"
+      });
+      request.headers.addAll(headers);
+
+      http.StreamedResponse response = await request.send();
+      if (response.statusCode == 200) {
+        String s = await response.stream.bytesToString();
+        if(s.contains("Is deleted : y")){
+          Fluttertoast.showToast(
+              msg: 'Team detials deleted Successfully',
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.green,
+              textColor: Colors.white,
+              fontSize: 15.0
+          );
+        }else{
+          Fluttertoast.showToast(
+              msg: 'Failed to Delete Team Detials!',
+              toastLength: Toast.LENGTH_LONG,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 15.0
+          );
+        }
+      }
+      else {
+        print(response.reasonPhrase);
+        Navigator.pop(context);
+        onNetworkChecking();
+        Fluttertoast.showToast(
+            msg: response.reasonPhrase.toString(),
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 15.0
+        );
+      }
+    }catch(ex){
+      Navigator.pop(context);
+      onNetworkChecking();
+      print(ex);}
+    }
+    //end
 }
 
 class GetTeam {

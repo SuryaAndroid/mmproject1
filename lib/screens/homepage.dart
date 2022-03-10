@@ -37,7 +37,12 @@ class _HomePageState extends State<HomePage> {
   String proCode = '';
   bool notiIconVisi = false;
   var counts = 0;
-  DateFormat formatter = DateFormat('dd-MM-yyyy hh:mm:ss a');
+  DateFormat formatter = DateFormat('dd-MM-yyyy hh:mm a');
+
+  List countList = [];
+  int cmCount=0;
+  int countIn =0;
+  int nCount =0;
 
   TextEditingController emailController = TextEditingController();
   TextEditingController phnoController = TextEditingController();
@@ -55,18 +60,13 @@ class _HomePageState extends State<HomePage> {
 
   //file upload
   String extention = "*";
-  // File _image = new File("");
-//  File _datas = new File("");
   String imgPath = "";
-  // List<File> _images = <File>[];
-  //List <File> _dataList = [];
   List<File> files =[];
   List extensions =[];
   bool imageremove = true;
   bool fileremove = true;
   bool filevisible = false;
   bool imgvisible = false;
-
   //
 
 //endregion
@@ -110,6 +110,54 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  //tk count
+  Future<void> Counttk() async {
+    print('Current user...... $currentUser');
+    showAlert(context);
+    try {
+      http.Response res =
+      await http.get(Uri.parse(
+          'https://mindmadetech.in/api/tickets/Teamtickets/$currentUser'));
+      if (res.statusCode == 200) {
+        List body = json.decode(res.body);
+        countList = body.toList();
+        List comCount = body.where((e) => e['Status'].toLowerCase() == 'completed').toList();
+
+        List inCounts = body.where((e) => e['Status'].toLowerCase() == 'inprogress').toList();
+
+        List newCount = body.where((e) => e['Status'].toLowerCase() == 'new').toList();
+
+           setState(() {
+            cmCount = comCount.length;
+            print(comCount.length);
+            print('completed' + ' $cmCount');
+
+            countIn = inCounts.length;
+            print(inCounts.length);
+            print('Inprogress' + '$countIn');
+
+            nCount = newCount.length;
+            print(newCount.length);
+            print('Assign' + '$nCount');
+           });
+        Navigator.pop(context);
+      }
+      else {
+        //tap again - visible
+        Navigator.pop(context);
+        onNetworkChecking();
+      }
+    }
+    catch(Exception)
+    {
+      //tap again - visible
+      Navigator.pop(context);
+      onNetworkChecking();
+    }
+  }
+//ed
+
+//default loader
   showAlert(BuildContext context){
     return showDialog(
         context: context,
@@ -132,50 +180,70 @@ class _HomePageState extends State<HomePage> {
         }
     );
   }
+  //end loader
 
+  //fetch client
   Future<void> fetchClientDetails() async{
-    http.Response response = await http.get(Uri.parse("https://mindmadetech.in/api/customer/list"));
-    if(response.statusCode==200){
-      List list = jsonDecode(response.body);
-      List filterUser = list.where((element) => element['Username']=="$currentUser").toList();
-      setState(() {
-        proCode = filterUser.map((e) => e['Projectcode']).toString().replaceAll("(", "").replaceAll(")", "");
-      });
-      print(proCode);
+    try{
+      http.Response response = await http.get(Uri.parse("https://mindmadetech.in/api/customer/list"));
+      if(response.statusCode==200){
+        List list = jsonDecode(response.body);
+        List filterUser = list.where((element) => element['Username']=="$currentUser").toList();
+        setState(() {
+          proCode = filterUser.map((e) => e['Projectcode']).toString().replaceAll("(", "").replaceAll(")", "");
+        });
+        print(proCode);
+      }else{
+        Navigator.pop(context);
+        onNetworkChecking();
+      }
+    }catch(ex){
+      Navigator.pop(context);
+      onNetworkChecking();
     }
   }
+  //end
 
+  //screen visibility
   Future screenVisibility() async{
-    var pref = await SharedPreferences.getInstance();
-    String userType = pref.getString('usertype') ?? '';
-    String currentUserStr = pref.getString('username')  ?? '';
-    if(userType=="admin"){
-      setState(() {
-        usertype = userType;
-        currentUser = currentUserStr;
-      });
-      fetchAllCounting();
+    try{
+      var pref = await SharedPreferences.getInstance();
+      String userType = pref.getString('usertype') ?? '';
+      String currentUserStr = pref.getString('username')  ?? '';
+      if(userType=="admin"){
+        setState(() {
+          usertype = userType;
+          currentUser = currentUserStr;
+        });
+        fetchAllCounting();
+      }
+      else if(userType=="team"){
+        setState(() {
+          team = true;
+          notiIconVisi=false;
+          usertype = userType;
+          currentUser = currentUserStr;
+          Counttk();
+        });
+      }
+      else{
+        setState(() {
+          users = true;
+          notiIconVisi=false;
+          usertype = userType;
+          currentUser = currentUserStr;
+          fetchClientDetails();
+        });
+      }
+      print(admin.toString()+users.toString()+team.toString());
+    }catch(ex){
+      Navigator.pop(context);
+      onNetworkChecking();
     }
-    else if(userType=="team"){
-      setState(() {
-        team = true;
-        notiIconVisi=false;
-        usertype = userType;
-        currentUser = currentUserStr;
-      });
-    }
-    else{
-      setState(() {
-        users = true;
-        notiIconVisi=false;
-        usertype = userType;
-        currentUser = currentUserStr;
-        fetchClientDetails();
-      });
-    }
-    print(admin.toString()+users.toString()+team.toString());
   }
+  //end
 
+  //network checking
   onNetworkChecking() async {
     bool isOnline = await hasNetwork();
     if (isOnline == false) {
@@ -227,7 +295,9 @@ class _HomePageState extends State<HomePage> {
       return false;
     }
   }
+  //end
 
+  //file picker
   void picker() async{
     print("image path"+imgPath);
     print("Entering to file picker........");
@@ -246,7 +316,9 @@ class _HomePageState extends State<HomePage> {
       print(extensions);
     }
   }
+//end picker
 
+  //file open
   OpenFiles(List<PlatformFile> files){
     ListView.builder(
         itemCount: files.length,
@@ -266,125 +338,130 @@ class _HomePageState extends State<HomePage> {
           );
         });
   }
+  //end open file
 
-
+//add new ticket
   Future AddNewTicket(String Username, String Email, String Phonenumber,
       String DomainName, String Description, BuildContext context) async {
 
-    final request = http.MultipartRequest(
-        'POST', Uri.parse('https://mindmadetech.in/api/tickets/new')
-    );
-    showAlert(context);
+    try{
+      final request = http.MultipartRequest(
+          'POST', Uri.parse('https://mindmadetech.in/api/tickets/new')
+      );
+      showAlert(context);
 
-    if(files.isEmpty){
-      request.headers['Content-Type'] = 'multipart/form-data';
-      request.fields.addAll
-        ({
-        'Username': Username,
-        'Email': Email,
-        'Phonenumber': Phonenumber,
-        'DomainName': DomainName,
-        'Projectcode':'$proCode',
-        'Description': Description,
-        'Cus_CreatedOn':formatter.format(DateTime.now()),
-      });
-      // request.files.add(await http.MultipartFile.fromPath('files', '/path/to/file'));
-      http.StreamedResponse response = await request.send();
-      String res = await response.stream.bytesToString();
-      if (response.statusCode == 200) {
-        Navigator.pop(context);
-        if(res.contains('Ticket added successfully')){
-          setState(() {
-            emailController = new TextEditingController(text: "");
-            phnoController = new TextEditingController(text: "");
-            domainController = new TextEditingController(text: "");
-            dsController = new TextEditingController(text: "");
-          });
+      if(files.isEmpty){
+        request.headers['Content-Type'] = 'multipart/form-data';
+        request.fields.addAll
+          ({
+          'Username': Username,
+          'Email': Email,
+          'Phonenumber': Phonenumber,
+          'DomainName': DomainName,
+          'Projectcode':'$proCode',
+          'Description': Description,
+          'Cus_CreatedOn':formatter.format(DateTime.now()),
+        });
+        http.StreamedResponse response = await request.send();
+        String res = await response.stream.bytesToString();
+        if (response.statusCode == 200) {
+          Navigator.pop(context);
+          if(res.contains('Ticket added successfully')){
+            setState(() {
+              emailController = new TextEditingController(text: "");
+              phnoController = new TextEditingController(text: "");
+              domainController = new TextEditingController(text: "");
+              dsController = new TextEditingController(text: "");
+            });
+            Fluttertoast.showToast(
+                msg:res.replaceAll("{", "").replaceAll("}", ""),
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.green,
+                textColor: Colors.white,
+                fontSize: 15.0
+            );
+          }
+        }
+        else {
+          Navigator.pop(context);
+          onNetworkChecking();
           Fluttertoast.showToast(
-              msg:res.replaceAll("{", "").replaceAll("}", ""),
+              msg:await response.reasonPhrase.toString(),
               toastLength: Toast.LENGTH_LONG,
               gravity: ToastGravity.BOTTOM,
               timeInSecForIosWeb: 1,
-              backgroundColor: Colors.green,
+              backgroundColor: Colors.red,
               textColor: Colors.white,
               fontSize: 15.0
           );
+          print(response.reasonPhrase);
         }
-      }
-      else {
-        Navigator.pop(context);
-        Fluttertoast.showToast(
-            msg:await response.reasonPhrase.toString(),
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-            fontSize: 15.0
-        );
-        print(response.reasonPhrase);
-      }
-    }else{
-      request.headers['Content-Type'] = 'multipart/form-data';
-      request.fields.addAll
-        ({
-        'Username': Username,
-        'Email': Email,
-        'Phonenumber': Phonenumber,
-        'DomainName': DomainName,
-        'Projectcode':'$proCode',
-        'Description': Description,
-        'Cus_CreatedOn':formatter.format(DateTime.now()),
-      });
-      for(int i =0 ; i<files.length ;i++){
-        request.files.add(await http.MultipartFile.fromPath('files', files[i].path,
-            filename: Path.basename(files[i].path),
-            contentType: MediaType.parse(extensions[i].toString())
-        ));
-      }
-      // request.files.add(await http.MultipartFile.fromPath('files', '/path/to/file'));
-      http.StreamedResponse response = await request.send();
-      String res = await response.stream.bytesToString();
-      if (response.statusCode == 200) {
-        Navigator.pop(context);
-        if(res.contains('Ticket added successfully')){
-          setState(() {
-            emailController = new TextEditingController(text: "");
-            phnoController = new TextEditingController(text: "");
-            domainController = new TextEditingController(text: "");
-            dsController = new TextEditingController(text: "");
-            extensions = [];
-            files = [];
-          });
+      }else{
+        request.headers['Content-Type'] = 'multipart/form-data';
+        request.fields.addAll
+          ({
+          'Username': Username,
+          'Email': Email,
+          'Phonenumber': Phonenumber,
+          'DomainName': DomainName,
+          'Projectcode':'$proCode',
+          'Description': Description,
+          'Cus_CreatedOn':formatter.format(DateTime.now()),
+        });
+        for(int i =0 ; i<files.length ;i++){
+          request.files.add(await http.MultipartFile.fromPath('files', files[i].path,
+              filename: Path.basename(files[i].path),
+              contentType: MediaType.parse(extensions[i].toString())
+          ));
+        }
+        http.StreamedResponse response = await request.send();
+        String res = await response.stream.bytesToString();
+        if (response.statusCode == 200) {
+          Navigator.pop(context);
+          if(res.contains('Ticket added successfully')){
+            setState(() {
+              emailController = new TextEditingController(text: "");
+              phnoController = new TextEditingController(text: "");
+              domainController = new TextEditingController(text: "");
+              dsController = new TextEditingController(text: "");
+              extensions = [];
+              files = [];
+            });
 
+            Fluttertoast.showToast(
+                msg:res.replaceAll("{", "").replaceAll("}", ""),
+                toastLength: Toast.LENGTH_LONG,
+                gravity: ToastGravity.BOTTOM,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.green,
+                textColor: Colors.white,
+                fontSize: 15.0
+            );
+          }
+        }
+        else {
+          Navigator.pop(context);
+          onNetworkChecking();
           Fluttertoast.showToast(
-              msg:res.replaceAll("{", "").replaceAll("}", ""),
+              msg:await response.reasonPhrase.toString(),
               toastLength: Toast.LENGTH_LONG,
               gravity: ToastGravity.BOTTOM,
               timeInSecForIosWeb: 1,
-              backgroundColor: Colors.green,
+              backgroundColor: Colors.red,
               textColor: Colors.white,
               fontSize: 15.0
           );
+          print(response.reasonPhrase);
         }
       }
-      else {
-        Navigator.pop(context);
-        Fluttertoast.showToast(
-            msg:await response.reasonPhrase.toString(),
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red,
-            textColor: Colors.white,
-            fontSize: 15.0
-        );
-        print(response.reasonPhrase);
-      }
+
+    }catch(ex){
+      Navigator.pop(context);
+      onNetworkChecking();
     }
-
   }
-
   //endregion
 
   void showfiles(){
@@ -627,7 +704,7 @@ class _HomePageState extends State<HomePage> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: <Widget>[
                                       Container(
-                                        child: (team == true) ? Text("10",
+                                        child: (team == true) ? Text("$nCount",
                                           style: TextStyle(
                                               fontSize: 32, fontWeight: FontWeight.bold,
                                               color: Color(0XFF0949b0)),) :
@@ -687,7 +764,7 @@ class _HomePageState extends State<HomePage> {
                                       children: <Widget>[
 
                                         Container(
-                                          child: (team == true) ? Text("5",
+                                          child: (team == true) ? Text('$countIn',
                                             style: TextStyle(fontSize: 32,
                                                 fontWeight: FontWeight.bold,
                                                 color: Color(0XFF0949b0)),) :
@@ -748,7 +825,7 @@ class _HomePageState extends State<HomePage> {
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: <Widget>[
                                         Container(
-                                          child: (team == true) ? Text("7",
+                                          child: (team == true) ? Text('$cmCount',
                                             style: TextStyle(fontSize: 32,
                                                 fontWeight: FontWeight.bold,
                                                 color: Color(0XFF0949b0)),) :

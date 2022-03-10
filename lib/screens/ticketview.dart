@@ -241,7 +241,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
     }
   }
   //endregion Dialogs
-  
+
   //File dwnld
   Future<String> downloadFile(String url, String fileName, String dir) async {
     showAlert(context," Downloading...");

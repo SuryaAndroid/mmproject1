@@ -211,27 +211,27 @@ class _CustomerState extends State<Customer> {
 
 //send mail
   void sendMailToClient() async {
-    setState(() {
-      mailId.text.toString();
-      passWd.text.toString();
-      usrNm.text.toString();
-    });
-    print(mailId);
-    print(passWd);
-    print(usrNm);
-    String username = 'durgadevi@mindmade.in';
-    String password = 'Appu#001';
-
-    final smtpServer = gmail(username, password);
-    final equivalentMessage = Message()
-      ..from = Address(username, 'DurgaDevi')
-      ..recipients.add(Address(mailId.text.toString()))
-      // ..ccRecipients.addAll([Address('surya@mindmade.in'), 'destCc2@example.com'])
-    // ..bccRecipients.add('bccAddress@example.com')
-      ..subject = 'Your Credentials ${formatter.format(DateTime.now())}'
-      ..text = '* Username: ${usrNm.text.toString()} \n* Password:${passWd.text.toString()}';
-    // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
     try {
+      setState(() {
+        mailId.text.toString();
+        passWd.text.toString();
+        usrNm.text.toString();
+      });
+      print(mailId);
+      print(passWd);
+      print(usrNm);
+      String username = 'durgadevi@mindmade.in';
+      String password = 'Appu#001';
+
+      final smtpServer = gmail(username, password);
+      final equivalentMessage = Message()
+        ..from = Address(username, 'DurgaDevi')
+        ..recipients.add(Address(mailId.text.toString()))
+        ..ccRecipients.addAll([Address('surya@mindmade.in'),])
+      // ..bccRecipients.add('bccAddress@example.com')
+        ..subject = 'Your Credentials ${formatter.format(DateTime.now())}'
+        ..text = '* Username: ${usrNm.text.toString()} \n* Password:${passWd.text.toString()}';
+      // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
       await send(equivalentMessage, smtpServer);
       print('Message sent: ' + send.toString());
       Fluttertoast.showToast(
@@ -288,7 +288,7 @@ class _CustomerState extends State<Customer> {
 
   //Add new customer logic
   Future AddNewUser(String comp, String user, String pass, String mail, String phn, String client,String proCode,BuildContext context) async {
-   // showAlert(context);
+    showAlert(context);
     print("procode...."+proCode);
     print(_image);
     try {
@@ -314,6 +314,7 @@ class _CustomerState extends State<Customer> {
           if (res.contains("Username already Exists!")||res.contains("Projectcode already Exists!")) {
             Navigator.of(context, rootNavigator: true).pop();
             Navigator.of(context, rootNavigator: true).pop();
+            Navigator.pop(context);
             Fluttertoast.showToast(
                 msg: "Username/ProjectCode already Exists!",
                 toastLength: Toast.LENGTH_LONG,
@@ -323,6 +324,7 @@ class _CustomerState extends State<Customer> {
                 textColor: Colors.white,
                 fontSize: 15.0
             );
+            Navigator.pop(context);
             return response;
           } else {
             Navigator.pop(context);
@@ -338,6 +340,7 @@ class _CustomerState extends State<Customer> {
               _image=File('');
               fetchCustomer();
             });
+            Navigator.pop(context);
             Fluttertoast.showToast(
                 msg: 'Customer added successfully!',
                 toastLength: Toast.LENGTH_LONG,
@@ -349,6 +352,7 @@ class _CustomerState extends State<Customer> {
             );
           }
         } else {
+          Navigator.pop(context);
           onNetworkChecking();
           print(await response.stream.bytesToString());
           print(response.statusCode);
@@ -365,6 +369,7 @@ class _CustomerState extends State<Customer> {
 
       } catch(ex){
       onNetworkChecking();
+      Navigator.pop(context);
       Fluttertoast.showToast(
           msg: 'Something went wrong',
           toastLength: Toast.LENGTH_LONG,
@@ -546,7 +551,6 @@ class _CustomerState extends State<Customer> {
         onPressed: () {
           dialogBuilder(context);
           print(MediaQuery.of(context).size.width);
-          //showAlert(context);
         },
         child: Icon(
           Icons.person_add_alt_outlined ,

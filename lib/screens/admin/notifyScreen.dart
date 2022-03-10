@@ -163,15 +163,21 @@ class _NotifScreenState extends State<NotifScreen> {
 
   //Changing viewed notification to seen
   Future<void> clearNotify(String ticId) async{
-    var request = http.Request('PUT', Uri.parse('https://mindmadetech.in/api/tickets/updateNotification/$ticId'));
-    http.StreamedResponse response = await request.send();
-    if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
-    }
-    else {
-      print(response.reasonPhrase);
+    try{
+      var request = http.Request('PUT', Uri.parse('https://mindmadetech.in/api/tickets/updateNotification/$ticId'));
+      http.StreamedResponse response = await request.send();
+      if (response.statusCode == 200) {
+        print(await response.stream.bytesToString());
+      }
+      else {
+        print(response.reasonPhrase);
+      }
+    }catch(ex){
+      Navigator.pop(context);
+      onNetworkChecking();
     }
   }
+
   //Passing data to screens by prefs
   Future<void> passData(int index) async{
     List<String> files = [];
@@ -258,13 +264,7 @@ class _NotifScreenState extends State<NotifScreen> {
     pref.setString("tmCompleteModifiedOn", ticketDetails[index].tmCompleteModifiedOn.toString()??'');
     pref.setString("tmCompleteModifiedBy", ticketDetails[index].tmCompleteModifiedBy.toString()??'');
 
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => TicketViewPage(
-              tmAssignList: teamTick,
-              teamsNamelist: [],
-            )));
+    Navigator.push(context, MaterialPageRoute(builder: (context) => TicketViewPage(tmAssignList: teamTick, teamsNamelist: [],)));
   }
 
   //endregion Functions

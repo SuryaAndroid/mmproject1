@@ -57,8 +57,6 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: loginStatus=="true"?HomePage():LoginPage(),
-      // body:Test()
-      // body:ScreOne()
     );
   }
 }

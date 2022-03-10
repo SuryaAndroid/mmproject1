@@ -1,6 +1,3 @@
-//code for send
-
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -36,12 +33,15 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
   String adm_updatedon='';
   String adm_updatedby='';
   String registerId='';
+
+  //region var
   List<File> files =[];
   List extensions =[];
-
   DateFormat formatter = DateFormat('dd-MM-yyyy hh:mm a');
   String extention = "*";
+  //end region
 
+  //pref data
   Future <void> getData() async{
     var pref = await SharedPreferences.getInstance();
     setState(() {
@@ -62,7 +62,9 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
 
     });
   }
+  //end
 
+  //default loader
   showAlert(BuildContext context){
     return showDialog(
         context: context,
@@ -85,7 +87,9 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
         }
     );
   }
+  //end
 
+  //approve dialog
   Future <void>ApproveDailog(BuildContext context) async{
     return showDialog(
         context: context,
@@ -145,13 +149,53 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
         }
     );
   }
+  //end dialog
+//network checking
+  onNetworkChecking() async {
+    bool isOnline = await hasNetwork();
+    if (isOnline == false) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('You are Offline!',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        backgroundColor: Color(0xffcd5c5c),
+        margin: EdgeInsets.only(left: 100, right: 100, bottom: 15),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20))),
+      ));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Back to online!',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.green,
+        margin: EdgeInsets.only(left: 100, right: 100, bottom: 10),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20))),
+      ));
+    }
+    return isOnline;
+  }
 
+  Future<bool> hasNetwork() async {
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      //networkStatus = "offline";
+      return false;
+    }
+  }
+  //end
 
+  //addunreg tk
   Future AddUnRegTicket() async {
-
-    final request = http.MultipartRequest(
-        'POST', Uri.parse('https://mindmadetech.in/api/tickets/new')
-    );
+    try{
+      final request = http.MultipartRequest(
+          'POST', Uri.parse('https://mindmadetech.in/api/tickets/new')
+      );
       request.headers['Content-Type'] = 'multipart/form-data';
       request.fields.addAll
         ({
@@ -193,10 +237,15 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
         );
         print(response.reasonPhrase);
       }
+    }catch(ex){
+      Navigator.pop(context);
+      onNetworkChecking();
+    }
   }
+  //end
 
 
-
+//addunreg user
   Future AddUnRegUser() async {
     print('enter...');
     try {
@@ -242,7 +291,6 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
           );
         }
       } else {
-        //onNetworkChecking();
         print(await response.stream.bytesToString());
         print(response.statusCode);
         print(response.reasonPhrase);
@@ -256,7 +304,8 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
             fontSize: 15.0);
       }
     }catch(ex){
-      //onNetworkChecking();
+      Navigator.pop(context);
+      onNetworkChecking();
       Fluttertoast.showToast(
           msg: 'Something went wrong',
           toastLength: Toast.LENGTH_LONG,
@@ -268,9 +317,10 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
       print(ex);
     }
   }
+  //end
 
 
-
+//Approve tk
   Future<void> ApproveTicket(String usersId,String Status,BuildContext context) async {
     try {
       print(usersId);
@@ -318,6 +368,8 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
       }
     }catch(Exception){
       print(Exception);
+      Navigator.pop(context);
+      onNetworkChecking();
       Fluttertoast.showToast(
           msg: 'Something went wrong',
           toastLength: Toast.LENGTH_LONG,
@@ -328,23 +380,24 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
           fontSize: 15.0);
     }
   }
+//end approve
 
 
   //send approve mail
   void approveStatusMail() async {
-    String username = 'durgadevi@mindmade.in';
-    String password = 'Appu#001';
-
-    final smtpServer = gmail(username, password);
-    final equivalentMessage = Message()
-      ..from = Address(username, 'DurgaDevi')
-      ..recipients.add(Address(email))
-     ..ccRecipients.addAll([Address('surya@mindmade.in'),])
-    // ..bccRecipients.add('bccAddress@example.com')
-      ..subject = 'Your Ticket status ${formatter.format(DateTime.now())}'
-      ..text = 'Your Ticket is Approved ';
-    // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
     try {
+      String username = 'durgadevi@mindmade.in';
+      String password = 'Appu#001';
+
+      final smtpServer = gmail(username, password);
+      final equivalentMessage = Message()
+        ..from = Address(username, 'DurgaDevi')
+        ..recipients.add(Address(email))
+        ..ccRecipients.addAll([Address('surya@mindmade.in'),])
+      // ..bccRecipients.add('bccAddress@example.com')
+        ..subject = 'Your Ticket status ${formatter.format(DateTime.now())}'
+        ..text = 'Your Ticket is Approved ';
+      // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
       await send(equivalentMessage, smtpServer);
       print('Message sent: ' + send.toString());
       Fluttertoast.showToast(
@@ -372,24 +425,25 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
       }
     }
   }
-  //
+  //end approve mail
 
 
   //send reject  mail
   void rejectStatusMail() async {
-    String username = 'durgadevi@mindmade.in';
-    String password = 'Appu#001';
-
-    final smtpServer = gmail(username, password);
-    final equivalentMessage = Message()
-      ..from = Address(username, 'DurgaDevi')
-      ..recipients.add(Address(email))
-      ..ccRecipients.addAll([Address('surya@mindmade.in'),])
-    // ..bccRecipients.add('bccAddress@example.com')
-      ..subject = 'Your Ticket status ${formatter.format(DateTime.now())}'
-      ..text = 'Your Ticket is Rejected ';
-    // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
     try {
+      String username = 'durgadevi@mindmade.in';
+      String password = 'Appu#001';
+
+      final smtpServer = gmail(username, password);
+      final equivalentMessage = Message()
+        ..from = Address(username, 'DurgaDevi')
+        ..recipients.add(Address(email))
+        ..ccRecipients.addAll([Address('surya@mindmade.in'),])
+      // ..bccRecipients.add('bccAddress@example.com')
+        ..subject = 'Your Ticket status ${formatter.format(DateTime.now())}'
+        ..text = 'Your Ticket is Rejected ';
+      // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
+
       await send(equivalentMessage, smtpServer);
       print('Message sent: ' + send.toString());
       Fluttertoast.showToast(
@@ -417,7 +471,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
       }
     }
   }
-  //
+  // end reg mail
 
 
 
