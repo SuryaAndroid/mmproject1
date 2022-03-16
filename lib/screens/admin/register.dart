@@ -118,17 +118,17 @@ class _RegisterState extends State<Register> {
         new Map<String, dynamic>.from(jsonDecode(response.body));
         print(map['message'].toString());
         if (map['message'].toString() == "Request sent successfully") {
-          setState(() {
+          setState((){
+            regmail();
             pref.setString('unregmailid',email);
             loadPrefs();
             Cmpname = TextEditingController();
             Clientname = TextEditingController();
             pass = TextEditingController();
-           // mailController = TextEditingController();
+            mailController = TextEditingController();
             phnoController = TextEditingController();
             domainController = TextEditingController();
             dsController = TextEditingController();
-            regmail();
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
