@@ -135,7 +135,7 @@ class _RegisterState extends State<Register> {
               SnackBar(
                 content: Row(
                   children: [
-                    Icon(Icons.done_all),
+                    Icon(Icons.done_all,color:Colors.white),
                     Text(' Ticket Created!'),
                   ],
                 ),
@@ -151,7 +151,7 @@ class _RegisterState extends State<Register> {
               SnackBar(
                 content: Row(
                   children: [
-                    Icon(Icons.announcement_sharp),
+                    Icon(Icons.announcement_sharp,color:Colors.white),
                     Text('Email already Exists'),
                   ],
                 ),
