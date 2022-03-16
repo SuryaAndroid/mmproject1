@@ -137,11 +137,11 @@ class _ChangePasswordState extends State<ChangePassword> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Image(
-                  height: 180,
+                  height: 210,
                   image: AssetImage("assets/images/changepass.png")
               ),
               Container(
-                margin: EdgeInsets.only(top:20,left: 10 , right: 10),
+                margin: EdgeInsets.only(top:50,left: 10 , right: 10),
                 child: TextField(
                   maxLength: 6,
                   controller: newPass,

@@ -185,38 +185,38 @@ class _HomePageState extends State<HomePage> {
 
   //screen visibility
   Future screenVisibility() async{
-      var pref = await SharedPreferences.getInstance();
-      print(pref.getString('usertype'));
-      String userType = pref.getString('usertype') ?? '';
-      String currentUserStr = pref.getString('usertypeMail')  ?? '';
-      print(userType);
-      if(userType=="admin"){
-        setState(() {
-          usertype = userType;
-          currentUser = currentUserStr;
-          fetchAllTick();
-          fetchAllCounting();
-        });
-      }
-      else if(userType=="team"){
-        setState(() {
-          team = true;
-          notiIconVisi=false;
-          usertype = userType;
-          currentUser = currentUserStr;
-          Counttk();
-        });
-      }
-      else{
-        setState(() {
-          users = true;
-          notiIconVisi=false;
-          usertype = userType;
-          currentUser = currentUserStr;
-         // fetchClientDetails();
-        });
-      }
-      print(admin.toString()+users.toString()+team.toString());
+    var pref = await SharedPreferences.getInstance();
+    print(pref.getString('usertype'));
+    String userType = pref.getString('usertype') ?? '';
+    String currentUserStr = pref.getString('usertypeMail')  ?? '';
+    print(userType);
+    if(userType=="admin"){
+      setState(() {
+        usertype = userType;
+        currentUser = currentUserStr;
+        fetchAllTick();
+        fetchAllCounting();
+      });
+    }
+    else if(userType=="team"){
+      setState(() {
+        team = true;
+        notiIconVisi=false;
+        usertype = userType;
+        currentUser = currentUserStr;
+        Counttk();
+      });
+    }
+    else{
+      setState(() {
+        users = true;
+        notiIconVisi=false;
+        usertype = userType;
+        currentUser = currentUserStr;
+        // fetchClientDetails();
+      });
+    }
+    print(admin.toString()+users.toString()+team.toString());
   }
   //end
 
@@ -340,7 +340,6 @@ class _HomePageState extends State<HomePage> {
         if (response.statusCode == 200) {
           print(res);
           if(res.contains('{"statusCode":200,"message":"Submitted Successfully"}')){
-            Navigator.pop(context);
             setState(() {
               phnoController = new TextEditingController(text: "");
               domainController = new TextEditingController(text: "");
@@ -358,6 +357,7 @@ class _HomePageState extends State<HomePage> {
                   behavior: SnackBarBehavior.floating,
                 )
             );
+            Navigator.pop(context);
           }else{
             Navigator.pop(context);
             ScaffoldMessenger.of(context).showSnackBar(
@@ -383,7 +383,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Icon(Icons.announcement_rounded,color: Colors.white,),
                     Text(response.reasonPhrase.toString(),style: TextStyle(
-                      fontSize: 14,color: Colors.white
+                        fontSize: 14,color: Colors.white
                     ),),
                   ],
                 ),
@@ -411,7 +411,6 @@ class _HomePageState extends State<HomePage> {
         http.StreamedResponse response = await request.send();
         String res = await response.stream.bytesToString();
         if (response.statusCode == 200) {
-          Navigator.pop(context);
           if(res.contains('{"statusCode":200,"message":"Submitted Successfully"}')){
             setState(() {
               phnoController = new TextEditingController(text: "");
@@ -771,9 +770,9 @@ class _HomePageState extends State<HomePage> {
                                               ),),
                                               SizedBox(height: 10,),
                                               Text('$ticketCount',style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w900,
-                                                fontSize: 20
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w900,
+                                                  fontSize: 20
                                               ),),
                                             ],
                                           ),
@@ -832,9 +831,9 @@ class _HomePageState extends State<HomePage> {
                                               ),),
                                               SizedBox(height: 10,),
                                               Text('$teamCount',style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20
                                               ),),
                                             ],
                                           ),
@@ -857,9 +856,9 @@ class _HomePageState extends State<HomePage> {
                                               Text('No Of \nInprogress',
                                                 textAlign: TextAlign.center
                                                 ,style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                              ),),
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),),
                                               SizedBox(height: 10,),
                                               Text('$inprogrCount',style: TextStyle(
                                                 color: Colors.white,
@@ -889,7 +888,7 @@ class _HomePageState extends State<HomePage> {
                                           )),);
                                       },
                                       child: Text('Go To Tickets',style: TextStyle(
-                                        color: Colors.white
+                                          color: Colors.white
                                       ),),
                                     ),
                                   ),
@@ -906,7 +905,7 @@ class _HomePageState extends State<HomePage> {
                                         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
                                       },
                                       child: Text('Exit App',style: TextStyle(
-                                        color: Colors.white
+                                          color: Colors.white
                                       ),),
                                     ),
                                   ),
@@ -1113,3 +1112,5 @@ class _HomePageState extends State<HomePage> {
         ));
   }
 }
+
+

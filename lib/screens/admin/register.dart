@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Register extends StatefulWidget {
@@ -27,8 +30,6 @@ class _RegisterState extends State<Register> {
 //region variables
   Color green =Color(0xff198D0F);
   Color red = Color(0xffE33C3C);
-
-
 
   String extention = "*";
   List unAppTic = [];
@@ -62,7 +63,6 @@ class _RegisterState extends State<Register> {
         });
   }
   //
-
   //default loader
   showAlert(BuildContext context) {
     return showDialog(
@@ -88,7 +88,6 @@ class _RegisterState extends State<Register> {
   }
   //
 
-
   //add unreg ticket
   Future AddTicket(String cmp,String clname,String passwrd,String email,
       String phno,String doname,String description) async {
@@ -109,7 +108,7 @@ class _RegisterState extends State<Register> {
             'DomainName':doname.toString(),
             'Description':description.toString(),
             'CreatedOn': formatter.format(DateTime.now()),
-            "Logo" : "https://mindmadetech.in/public/images/file-1645099812344.png",
+            "Logo" : "https://mindmadetech.in/public/images/profile-img.png",
           }));
 
       print(jsonDecode(response.body));
@@ -120,14 +119,16 @@ class _RegisterState extends State<Register> {
         print(map['message'].toString());
         if (map['message'].toString() == "Request sent successfully") {
           setState(() {
-            emailId = pref.getString('unregmailid')??'';
+            pref.setString('unregmailid',email);
+            loadPrefs();
             Cmpname = TextEditingController();
             Clientname = TextEditingController();
             pass = TextEditingController();
-            mailController = TextEditingController();
+           // mailController = TextEditingController();
             phnoController = TextEditingController();
             domainController = TextEditingController();
             dsController = TextEditingController();
+            regmail();
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -135,7 +136,7 @@ class _RegisterState extends State<Register> {
                 content: Row(
                   children: [
                     Icon(Icons.done_all),
-                    Text('Ticket Created Successfuly'),
+                    Text(' Ticket Created!'),
                   ],
                 ),
                 backgroundColor: green,
@@ -203,7 +204,8 @@ class _RegisterState extends State<Register> {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(
                     Radius.circular(20))),
-          ));
+          )
+      );
     }
     else {
       ScaffoldMessenger.of(context)
@@ -237,6 +239,46 @@ class _RegisterState extends State<Register> {
     }
   }
 
+
+//send approve mail
+  Future<void> regmail() async {
+    String username = 'durgadevi@mindmade.in';
+    String password = 'Appu#001';
+
+    final smtpServer = gmail(username, password);
+    final equivalentMessage = Message()
+      ..from = Address(username, 'DurgaDevi')
+      ..recipients.add(Address(mailController.text.toString()))
+      ..ccRecipients.addAll([Address('surya@mindmade.in'),'durgavenkatesh805@gmail.com'])
+    // ..bccRecipients.add('bccAddress@example.com')
+      ..subject = 'Your Ticket status (${formatter.format(DateTime.now())})'
+      ..text = ("Dear Sir/Madam,\n\n"
+          "Greetings from MindMade Customer Support Team!!!\n"
+          "Thank you for raising your queries with us.Our Admin verify your queries and we will reach you as soon as possible.\n\n"
+
+          "Thanks & Regards,\n"
+          "Mindmade."
+
+      );
+    // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
+    try {
+      await send(equivalentMessage, smtpServer);
+      print('Message sent: ' + send.toString());
+      Fluttertoast.showToast(msg: 'Approve send via mail');
+
+    } on MailerException catch (e) {
+      print('Message not sent.');
+      for (var p in e.problems) {
+        print('Problem: ${p.code}: ${p.msg}');
+        Fluttertoast.showToast(msg:'Failed to send Approve');
+      }
+    }
+  }
+//
+
+
+
+
 // ticket status
   Future<void> getTickets() async{
     var pref = await SharedPreferences.getInstance();
@@ -247,7 +289,7 @@ class _RegisterState extends State<Register> {
         unAppTic = jsonDecode(response.body);
         setState(() {
           filterdByPhn = unAppTic.where((element) => element['Email'].toLowerCase() ==
-              emailId.toLowerCase()).toList();
+              emailId.toString().toLowerCase()).toList();
           status = filterdByPhn[0]['Status'].toString();
           if(status.toLowerCase() == 'approved'){
             pref.remove('unregmailid');
@@ -256,17 +298,16 @@ class _RegisterState extends State<Register> {
           }
         });ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                backgroundColor: Colors.lightGreen,
+                backgroundColor: Colors.green,
                 content: Text('Status fetched.'))
         );
       }else{
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
                 backgroundColor: Colors.red,
-                content: Text('Something wen wrong please try again.')
+                content: Text('Something went wrong please try again.')
             )
         );
-
       }
     }catch(ex){
       onNetworkChecking();
@@ -280,25 +321,23 @@ class _RegisterState extends State<Register> {
   }
 //end status
 
+  Future<void> loadPrefs() async{
+    var pref = await SharedPreferences.getInstance();
+    setState(() {
+      emailId = pref.getString('unregmailid')??'';
+      if(emailId.isNotEmpty){
+        getTickets();
+      }
+    });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     Future.delayed(
         Duration.zero, () async {
-      var pref = await SharedPreferences.getInstance();
-      setState(() {
-        emailId = pref.getString('unregmailid')??'';
-        userType = pref.getString('usertype')??'';
-        if(emailId==null){
-          setState(() {
-            emailId = '';
-          });
-        }
-        if(userType=='unreguser'){
-          getTickets();
-        }
-      });
+        loadPrefs();
     });
   }
   @override
@@ -308,7 +347,8 @@ class _RegisterState extends State<Register> {
         title: Text('Register'),
         backgroundColor: Color(0Xff146bf7),
         actions: [
-          userType=="unreguser"?PopupMenuButton(
+          emailId.isNotEmpty?
+          PopupMenuButton(
               icon: Icon(Icons.info_outline , size: 30,),
               itemBuilder: (context) =>
               [
@@ -345,7 +385,8 @@ class _RegisterState extends State<Register> {
                   },
                 ),
               ]
-          ):Container()
+          ):
+          Container()
         ],
       ),
       body: SingleChildScrollView(
@@ -384,7 +425,6 @@ class _RegisterState extends State<Register> {
                         ),
                       ),
                       SizedBox(height:10,),
-
                       Container(
                         height: 45,
                         child: TextFormField(
@@ -464,38 +504,48 @@ class _RegisterState extends State<Register> {
                       ),
                       SizedBox(height:10,),
                       Container(
-                        height: 60,
                         alignment: Alignment.centerRight,
-                        child: ElevatedButton(onPressed: () {
-                          if(Cmpname.text.isEmpty||Clientname.text.isEmpty||
-                              pass.text.isEmpty||mailController.text.isEmpty||phnoController.text.isEmpty||domainController.text.isEmpty||dsController.text.isEmpty){
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    backgroundColor: red,
-                                    content: Row(
-                                      children: [
-                                        Icon(Icons.article,color: Colors.white,),
-                                        Text('Please enter all details'),
-                                      ],
-                                    ),
-                                  behavior: SnackBarBehavior.floating,
-                                )
-                            );
-                          } else{
-                            AddTicket(Cmpname.text.toString(), Clientname.text.toString(),
-                                pass.text.toString(), mailController.text.toString(), phnoController.text.toString(),
-                                domainController.text.toString(), dsController.text.toString());
-                          }
-                        },
-                          style: ElevatedButton.styleFrom(
-                            shape: StadiumBorder(),
-                            onPrimary: Colors.white,
-                          ),child: Text("send",style: TextStyle(fontSize: 17),),),
+                        child: Container(
+                          margin: EdgeInsets.only(top: 15),
+                          height: 45,
+                          width: 100,
+                          child: RaisedButton(
+                            shape:RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20.0)
+                            ),
+                            color: Colors.blue,
+                            onPressed: () {
+                              FocusScope.of(context).unfocus();
+                              if(Cmpname.text.isEmpty||Clientname.text.isEmpty||
+                                  pass.text.isEmpty||mailController.text.isEmpty||phnoController.text.isEmpty||domainController.text.isEmpty||dsController.text.isEmpty){
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: red,
+                                      content: Row(
+                                        children: [
+                                          Icon(Icons.article,color: Colors.white,),
+                                          Text('Please fill all details'),
+                                        ],
+                                      ),
+                                      behavior: SnackBarBehavior.floating,
+                                    )
+                                );
+                              } else{
+                                AddTicket(Cmpname.text.toString(), Clientname.text.toString(),
+                                    pass.text.toString(), mailController.text.toString(), phnoController.text.toString(),
+                                    domainController.text.toString(), dsController.text.toString());
+                              }
+                            },
+                            child: Text('SUBMIT',style: TextStyle(
+                              color: Colors.white
+                            ),),
+                          ),
+                        )
                       ),
                     ],
                   ),
                 )
-            )
+            ),
           ],
         ),
       ),

@@ -145,7 +145,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                   Container(
                                       padding: EdgeInsets.only(right: 150),
                                       margin: EdgeInsets.only(bottom: 15),
-                                      child: (data[index].Email.isNotEmpty)?Text(data[index].Email,style: TextStyle(fontSize: 18),):Text('no datas')
+                                      child: (data[index].Email.isNotEmpty)?
+                                      Text(data[index].Email,style: TextStyle(fontSize: 18),):Text('no datas')
                                   ),
                                 ],
                               ),

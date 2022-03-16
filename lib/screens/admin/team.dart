@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -21,7 +22,7 @@ class _TeamListState extends State<TeamList> {
   //region Var
   String dropdownValue = "Design";
   final List<String> datas = ["SEO", "Design", "Development", "Server"];
-  TextEditingController UserController = TextEditingController();
+  TextEditingController mailController = TextEditingController();
   TextEditingController PassController = TextEditingController();
   TextEditingController phoneCtrl = TextEditingController();
   TextEditingController phoneCtrlnew = TextEditingController();
@@ -54,7 +55,7 @@ class _TeamListState extends State<TeamList> {
       if (response.statusCode == 200) {
         Navigator.pop(context);
         List body = jsonDecode(response.body);
-        print("body,....."+body.toString());
+        //print("body,....."+body.toString());
         setState(() {
           retryVisible = false;
           teamList = body.map((e) => GetTeam.fromJson(e)).toList();
@@ -116,7 +117,7 @@ class _TeamListState extends State<TeamList> {
     return showDialog(
         context: context,
         builder: (context) {
-          TextEditingController  UserController = TextEditingController(text: searchList[index].Username);
+          TextEditingController  emailController = TextEditingController(text: searchList[index].email);
           TextEditingController PassController = TextEditingController(text: searchList[index].Password);
           phoneCtrl = new TextEditingController(text:searchList[index].phone );
           return Container(
@@ -134,7 +135,7 @@ class _TeamListState extends State<TeamList> {
                             hintText: 'Enter Mail id',
                             labelText: 'Mail',
                           ),
-                          controller: UserController,
+                          controller: emailController,
                         ),
                         TextFormField(
                           decoration: const InputDecoration(
@@ -185,7 +186,15 @@ class _TeamListState extends State<TeamList> {
                       style: TextStyle(color: Colors.white, fontSize: 18),
                     ),
                     onPressed: () {
-                      if(UserController.text.isEmpty||PassController.text.isEmpty||phoneCtrl.text.isEmpty){
+                      bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                          .hasMatch(emailController.text.toString());
+                      print(emailValid);
+                      if(emailValid!=true){
+                        Fluttertoast.showToast(
+                          msg: 'Enter a valid email id',
+                          backgroundColor: Colors.red,
+                        );
+                      }if(emailController.text.isEmpty||PassController.text.isEmpty||phoneCtrl.text.isEmpty){
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -200,7 +209,7 @@ class _TeamListState extends State<TeamList> {
                             )
                         );
                       }else{
-                        updateTeam(UserController.text.toString(),
+                        updateTeam(emailController.text.toString(),
                             PassController.text.toString(),phoneCtrl.text.toString(),dropdownValue.toLowerCase(),index);
                         Navigator.pop(context);
                       }
@@ -306,9 +315,10 @@ class _TeamListState extends State<TeamList> {
                             hintText: 'Enter mail id',
                             labelText: 'Mail id',
                           ),
-                          controller: UserController,
+                          controller: mailController,
                         ),
                         TextFormField(
+                          //   maxLength: 6,
                           decoration: const InputDecoration(
                             hintText: 'Password here',
                             labelText: 'Password',
@@ -346,7 +356,14 @@ class _TeamListState extends State<TeamList> {
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context, 'Cancel'),
+                    onPressed: () {
+                      Navigator.pop(context,);
+                      setState(() {
+                        mailController = TextEditingController(text: '');
+                        PassController = TextEditingController(text: '');
+                        phoneCtrlnew = TextEditingController(text: '');
+                      });
+                    },
                     child: Text(
                       'Cancel',
                       style: TextStyle(fontSize: 16),
@@ -358,25 +375,29 @@ class _TeamListState extends State<TeamList> {
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
                       onPressed: () {
-                        String Username = UserController.text;
+                        String emailId = mailController.text;
                         String Password = PassController.text;
-                        if(Username.isEmpty||Password.isEmpty||phoneCtrlnew.text.isEmpty||phoneCtrlnew.text.length<10){
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: [
-                                    Icon(Icons.close_outlined,color: Colors.white,),
-                                    Text(' Fields not be empty!'),
-                                  ],
-                                ),
-                                backgroundColor: Color(0xffE33C3C),
-                                behavior: SnackBarBehavior.floating,
-                              )
+                        bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                            .hasMatch(emailId.toString());
+                        print(emailValid);
+                        if(emailValid!=true){
+                          Fluttertoast.showToast(
+                            msg: 'Enter a valid email id',
+                            backgroundColor: Colors.red,
+                          );
+                        }else if(Password.length>6){
+                          Fluttertoast.showToast(
+                            msg: 'Password must be 6 digits',
+                            backgroundColor: Colors.red,
+                          );
+                        }else if(emailId.isEmpty||Password.isEmpty||phoneCtrlnew.text.isEmpty||phoneCtrlnew.text.length<10){
+                          Fluttertoast.showToast(
+                            msg: 'Fields not be empty!',
+                            backgroundColor: Colors.red,
                           );
                         }else{
                           Addteam(
-                            Username,
+                            emailId,
                             Password,
                             phoneCtrlnew.text.toString(),
                             dropdownValue.toString(),
@@ -391,7 +412,57 @@ class _TeamListState extends State<TeamList> {
         });
   }
 
-  Future<void> Addteam(String Username, String Password,String phone, String Team) async {
+  void sendmailTm(String mail, String pass) async{
+    try {
+      setState(() {
+        mailController.text.toString();
+        PassController.text.toString();
+      });
+      print(mailController);
+      print(PassController);
+      String username = 'durgadevi@mindmade.in';
+      String password = 'Appu#001';
+      final smtpServer = gmail(username, password);
+      final equivalentMessage = Message()
+        ..from = Address(username, 'DurgaDevi')
+        ..recipients.add(Address(mailController.text.toString()))
+        ..ccRecipients.addAll([Address('surya@mindmade.in'),])
+      // ..bccRecipients.add('bccAddress@example.com')
+        ..subject = 'Your Credentials ${formatter.format(DateTime.now())}'
+        ..text = 'Dear Sir/Madam,\n\n'
+            'Greetings from MindMade Customer Support Team!!! \n'
+            'You have been registered as Team member on MindMade Customer Support.\n'
+            'To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:\n\n'
+            'Email : ${mail}\n'
+            'Password : ${pass}\n\n'
+            'You can change your password once you logged in.\n\n'
+            'Thanks & Regards, \nMindMade';
+      // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
+      await send(equivalentMessage, smtpServer);
+      print('Message sent: ' + send.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Team Credentials send via mail'),
+            backgroundColor: Colors.lightGreen,
+            behavior: SnackBarBehavior.floating,
+          )
+      );
+    } on MailerException catch (e) {
+      print('Message not sent.');
+      for (var p in e.problems) {
+        print('Problem: ${p.code}: ${p.msg}');
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to send credentials!'),
+              backgroundColor: Colors.red[200],
+              behavior: SnackBarBehavior.floating,
+            )
+        );
+      }
+    }
+  }
+
+  Future<void> Addteam(String emailId, String Password,String phone, String Team) async {
     showAlert(context);
     try {
       var url = Uri.parse('https://mindmadetech.in/api/team/new');
@@ -400,7 +471,7 @@ class _TeamListState extends State<TeamList> {
             'Content-Type': 'application/json; charset=UTF-8',
           },
           body: jsonEncode(<String, String>{
-            "Email" : Username.toString(),
+            "Email" : emailId.toString(),
             "Password" : Password.toString(),
             "Team" : Team.toString(),
             "Phonenumber":phone.toString(),
@@ -409,9 +480,13 @@ class _TeamListState extends State<TeamList> {
           }));
       if (response.statusCode == 200) {
         if(response.body.contains( "Team added successfully")){
+          sendmailTm(mailController.text.toString(),PassController.text.toString());
           Navigator.pop(context);
           setState(() {
             refreshListener();
+            mailController = TextEditingController(text: '');
+            PassController = TextEditingController(text: '');
+            phoneCtrlnew = TextEditingController(text: '');
           });
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -425,10 +500,14 @@ class _TeamListState extends State<TeamList> {
                 behavior: SnackBarBehavior.floating,
               )
           );
-        }
-        else{
+        } else if(response.body.contains( "Email already Exists!")){
           print(response.body);
           Navigator.pop(context);
+          setState(() {
+            mailController = TextEditingController(text: '');
+            PassController = TextEditingController(text: '');
+            phoneCtrlnew = TextEditingController(text: '');
+          });
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Row(
@@ -519,7 +598,7 @@ class _TeamListState extends State<TeamList> {
                     },
                     child:Row(
                       children: <Widget>[
-                        Icon(Icons.ballot_rounded , color: Colors.green,),
+                        // Icon(Icons.ballot_rounded , color: Colors.green,),
                         Padding(
                           padding: const EdgeInsets.only(left: 6),
                           child: Text("Design"),
@@ -540,7 +619,7 @@ class _TeamListState extends State<TeamList> {
                     },
                     child: Row(
                       children: <Widget>[
-                        Icon(Icons.circle, color: Colors.yellow,),
+                        // Icon(Icons.circle, color: Colors.yellow,),
                         Padding(
                           padding: const EdgeInsets.only(left: 6),
                           child: Text("Development"),
@@ -553,14 +632,12 @@ class _TeamListState extends State<TeamList> {
                     onTap: () {
                       setState(() {
                         sortString = "seo";
-
                         print(sortString);
-
                       });
                     },
                     child: Row(
                       children: <Widget>[
-                        Icon(Icons.search, color: Colors.blue,),
+                        //  Icon(Icons.search, color: Colors.blue,),
                         Padding(
                           padding: const EdgeInsets.only(left: 6),
                           child: Text("SEO"),
@@ -579,7 +656,7 @@ class _TeamListState extends State<TeamList> {
                     },
                     child: Row(
                       children: <Widget>[
-                        Icon(Icons.admin_panel_settings, color: Colors.red,),
+                        //  Icon(Icons.admin_panel_settings, color: Colors.red,),
                         Padding(
                           padding: const EdgeInsets.only(left: 6),
                           child: Text("Server"),
@@ -597,10 +674,10 @@ class _TeamListState extends State<TeamList> {
                     },
                     child: Row(
                       children: <Widget>[
-                        Icon(Icons.account_box, color: Colors.amber,),
+                        Icon(Icons.group, color: Colors.green,size: 25,),
                         Padding(
                           padding: const EdgeInsets.only(left: 6),
-                          child: Text("All"),
+                          child: Text("  All"),
                         ),
                       ],
                     ),
@@ -835,8 +912,8 @@ class _TeamListState extends State<TeamList> {
                                       Colors.blueAccent,
                                       radius: 27,
                                       child: Text(
-                                          searchList[index].email[0].toUpperCase(),
-                                          style: TextStyle(fontSize:22,fontWeight: FontWeight.bold,color: Colors.white),
+                                        searchList[index].email[0].toUpperCase(),
+                                        style: TextStyle(fontSize:22,fontWeight: FontWeight.bold,color: Colors.white),
                                       ),
                                     ),
                                     title: Text(
@@ -1148,5 +1225,6 @@ class GetTeam {
         Isdeleted: json['Isdeleted'].toString());
   }
 }
+
 
 

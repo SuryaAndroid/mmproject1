@@ -24,7 +24,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
   String UserName='';
   String pass='';
   String logo='';
-  String email='';
+  String emailid='';
   String phonenumber='';
   String domainname='';
   String description='';
@@ -33,6 +33,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
   String adm_updatedon='';
   String adm_updatedby='';
   String registerId='';
+  String createdby='';
   List<File> files =[];
   List extensions =[];
 
@@ -52,7 +53,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
       UserName=pref.getString('UserName')!;
       pass =pref.getString('pass')!;
       logo= pref.getString('logo')!;
-      email=pref.getString('email')!;
+      emailid=pref.getString('unreg_email')!;
       phonenumber=pref.getString('phonenumber')!;
       domainname=pref.getString('domainname')!;
       description=pref.getString('description')!;
@@ -147,8 +148,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
     );
   }
 
-
-  Future AddUnRegTicket() async {
+  Future<void> AddUnRegTicket() async {
     showAlert(context);
     final request = http.MultipartRequest(
         'POST', Uri.parse('https://mindmadetech.in/api/tickets/new')
@@ -156,114 +156,83 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
     request.headers['Content-Type'] = 'multipart/form-data';
     request.fields.addAll
       ({
-      'Username': UserName,
-      'Email': email,
+      'Email': emailid,
       'Phonenumber': phonenumber,
       'DomainName': domainname,
       'Description': description,
-      'Cus_CreatedOn':'null'
+      'Cus_CreatedOn':'null',
     });
     http.StreamedResponse response = await request.send();
     String res = await response.stream.bytesToString();
     print(response.statusCode);
     print('tickets...');
     if (response.statusCode == 200) {
-      Navigator.pop(context);
-      if(res.contains('Ticket added successfully')){
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.done_all,color: Colors.white,),
-                Text('Ticket added successfully'),
-              ],
-            ),
-            backgroundColor:green,
-            behavior: SnackBarBehavior.floating,
-          )
+      print(res);
+      if(res.contains('{"statusCode":200,"message":"Submitted Successfully"}')){
+        Fluttertoast.showToast(
+            msg: 'Ticket added successfully',
+            backgroundColor: Colors.green
         );
       }
     }
     else {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.announcement_outlined,color: Colors.white,),
-                Text(response.reasonPhrase.toString()),
-              ],
-            ),
-            backgroundColor: red,
-            behavior: SnackBarBehavior.floating,
-          )
-      );
+      Fluttertoast.showToast(
+          msg: response.reasonPhrase.toString(),
+          backgroundColor: Colors.green);
       print(response.reasonPhrase);
     }
   }
 
-
-
-  Future AddUnRegUser() async {
-    print('enter...');
+  Future <void> AddUnRegUser() async {
+    print('user...');
     try {
-      final request = http.MultipartRequest(
-          'POST', Uri.parse('https://mindmadetech.in/api/customer/new'));
-      request.headers['Content-Type'] = 'multipart/form-data';
-      request.fields.addAll({
-        'Companyname': cmpyname,
-        'Clientname': cliname,
-        'Username': UserName,
-        'Password': pass,
-        'Email': email,
-        'Phonenumber': phonenumber,
-        'Createdon': formatter.format(DateTime.now()),
-        'Logo':logo
-      });
-
-      http.StreamedResponse response = await request.send();
+      http.Response response = await http.post(
+          Uri.parse('https://mindmadetech.in/api/customer/new'),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8'
+          },
+          body: jsonEncode(<String, String>{
+            'Companyname': cmpyname,
+            'Clientname': cliname,
+            'Password': pass,
+            'Email': emailid,
+            'Phonenumber': phonenumber,
+            'CreatedOn': formatter.format(DateTime.now()),
+            'Logo':logo,
+            'CreatedBy':createdby
+          }));
+      print(jsonDecode(response.body));
+      Map<String, dynamic> map =
+      new Map<String, dynamic>.from(jsonDecode(response.body));
+      print(map['message'].toString());
       if (response.statusCode == 200) {
+        print(response.reasonPhrase);
         print(response.statusCode);
-        String res = await response.stream.bytesToString();
-        print(res);
-        if (res.contains("Username already Exists!")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.announcement,color: Colors.white,),
-                    Text('Username already Exists!'),
-                  ],
-                ),
-                backgroundColor:red,
-                behavior: SnackBarBehavior.floating,
-              )
-          );
-          return response;
+        if (map['message'].toString() ==  '{"statusCode":400,"message":"Email already Exists!"}') {
+          Navigator.pop(context);
+          Fluttertoast.showToast(
+              msg: 'Username already Exists!',
+              backgroundColor: Colors.red);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.done_all,color: Colors.white,),
-                    Text('Customer added successfully!'),
-                  ],
-                ),
-                backgroundColor: green,
-                behavior: SnackBarBehavior.floating,
-              )
-          );
+          setState(() {
+            approveStatusMail();
+          });
+          Navigator.pop(context);
+          Fluttertoast.showToast(
+              msg: ' Customer added successfully!',
+              backgroundColor: Colors.green);
         }
       } else {
-        print(await response.stream.bytesToString());
+        Navigator.pop(context);
         print(response.statusCode);
         print(response.reasonPhrase);
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
                 children: [
-                  Icon(Icons.announcement,color: Colors.white,),
-                  Text(response.reasonPhrase.toString(),),
+                  Icon(Icons.announcement_outlined,color: Colors.white,),
+                  Text(" "+response.reasonPhrase.toString()),
                 ],
               ),
               backgroundColor: red,
@@ -271,19 +240,11 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
             )
         );
       }
-    }catch(ex){
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.announcement,color: Colors.white,),
-                Text('Something went wrong'),
-              ],
-            ),
-            backgroundColor: red,
-            behavior: SnackBarBehavior.floating,
-          )
-      );
+    }
+    catch(ex){
+      Fluttertoast.showToast(msg: 'Something went wrong',
+        backgroundColor: Colors.red,);
+      Navigator.pop(context);
       print(ex);
     }
   }
@@ -305,6 +266,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
       http.StreamedResponse response = await request.send();
       if (response.statusCode == 200) {
         String s = await response.stream.bytesToString();
+        print(status);
         if("$status"== 'Reject'){
           setState(() {
             rejectStatusMail();
@@ -325,20 +287,9 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
           setState(() {
             AddUnRegUser();
             AddUnRegTicket();
-            approveStatusMail();
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.done_all,color: Colors.white,),
-                    Text('Approved successfully!'),
-                  ],
-                ),
-                backgroundColor: green,
-                behavior: SnackBarBehavior.floating,
-              )
-          );
+          Fluttertoast.showToast(msg: 'Approved successfully');
+          Navigator.pop(context);
         }
       }
     }catch(Exception){
@@ -367,53 +318,32 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
     final smtpServer = gmail(username, password);
     final equivalentMessage = Message()
       ..from = Address(username, 'DurgaDevi')
-      ..recipients.add(Address(email))
-      ..ccRecipients.addAll([Address('surya@mindmade.in'),])
+      ..recipients.add(Address(emailid))
+      ..ccRecipients.addAll([Address('surya@mindmade.in'),'durgavenkatesh805@gmail.com'])
     // ..bccRecipients.add('bccAddress@example.com')
-      ..subject = 'Your Ticket status ${formatter.format(DateTime.now())}'
-    ..text = ("Dear Sir/Madam,\n\n"
-        "Greetings from MindMade Customer Support Team!!!\n"
-        "You have been registered as Client on MindMade Customer Support.\n"
-        "To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:\n\n"
-        "Email:$email\n"
-        "Password:$pass\n\n"
-        "You can change your password once you logged in.\n\n"
-        "Thanks & Regards,\n"
-        "Mindmade;"
+      ..subject = 'Your Ticket status (${formatter.format(DateTime.now())})'
+      ..text = ("Dear Sir/Madam,\n\n"
+          "Greetings from MindMade Customer Support Team!!!\n"
+          "You have been registered as Client on MindMade Customer Support.\n\n"
+          "To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:\n\n"
+          "Email : $emailid\n"
+          "Password : $pass\n\n"
+          "You can change your password once you logged in.\n\n"
+          "Thanks & Regards,\n"
+          "Mindmade."
 
-    );
+      );
     // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
     try {
       await send(equivalentMessage, smtpServer);
       print('Message sent: ' + send.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.done_all,color: Colors.white,),
-                Text('Approve send via mail'),
-              ],
-            ),
-            backgroundColor: green,
-            behavior: SnackBarBehavior.floating,
-          )
-      );
+      Fluttertoast.showToast(msg: 'Approve send via mail');
+
     } on MailerException catch (e) {
       print('Message not sent.');
       for (var p in e.problems) {
         print('Problem: ${p.code}: ${p.msg}');
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.close,color: Colors.white,),
-                  Text('Failed to send Approve'),
-                ],
-              ),
-              backgroundColor:red,
-              behavior: SnackBarBehavior.floating,
-            )
-        );
+        Fluttertoast.showToast(msg:'Failed to send Approve');
       }
     }
   }
@@ -428,7 +358,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
     final smtpServer = gmail(username, password);
     final equivalentMessage = Message()
       ..from = Address(username, 'DurgaDevi')
-      ..recipients.add(Address(email))
+      ..recipients.add(Address(emailid))
       ..ccRecipients.addAll([Address('surya@mindmade.in'),])
     // ..bccRecipients.add('bccAddress@example.com')
       ..subject = 'Your Ticket status ${formatter.format(DateTime.now())}'
@@ -469,39 +399,33 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
     }
   }
   //
-
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getData();
-    print(registerId);
-    print(status);
-    print(email);
-    print(pass);
-    print ("Dear Sir/Madam,\n\n"
-        "Greetings from MindMade Customer Support Team!!!\n"
-        "You have been registered as Client on MindMade Customer Support.\n"
-        "To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:\n\n"
-        "Email:$email\n"
-        "Password:$pass\n\n"
-        "You can change your password once you logged in.\n\n"
-        "Thanks & Regards,\n"
-        "Mindmade;"
-
-    );
+    Future.delayed(Duration.zero, () async {
+      getData();
+      var pref = await SharedPreferences.getInstance();
+      createdby=  pref.getString('usertypeMail')??'';
+      print(createdby);
+      print(logo);
+    });
   }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        floatingActionButton: FloatingActionButton.extended(
+        floatingActionButton:
+        (status=='Approved')?Container():(status=='Reject')?Container():(status=='Pending')?
+        FloatingActionButton.extended(
           onPressed: () {
+            print(status);
             ApproveDailog(context);
           }, label: Text('Approve'),
           icon: Icon(Icons.beenhere_outlined ),
 
-        ),
+        ) :Container(),
         body: Stack(
             children: [
               ClipPath(
@@ -529,7 +453,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
                       ),
                       Container(
                         padding: EdgeInsets.only(top: 5),
-                        child: Text(email, style: TextStyle(fontSize: 17, color: Colors.white),),),
+                        child: Text(emailid, style: TextStyle(fontSize: 17, color: Colors.white),),),
 
                       Container(
                           padding: EdgeInsets.only(top: 5),
@@ -631,5 +555,6 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
     );
   }
 }
+
 
 

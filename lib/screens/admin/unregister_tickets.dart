@@ -11,8 +11,8 @@ class UnRegister_Tickets extends StatefulWidget {
   String currentUser='';
   UnRegister_Tickets({required this.usertype, required this.currentUser});
 
-@override
-  _UnRegister_TicketsState createState() => _UnRegister_TicketsState(usertype: usertype, currentUser: currentUser);
+  @override
+  _UnRegister_TicketsState createState() => _UnRegister_TicketsState(  usertype: usertype, currentUser: currentUser,);
 
 }
 
@@ -21,8 +21,10 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
   String currentUser='';
   _UnRegister_TicketsState({required this.usertype, required this.currentUser, });
 
+
   List<GetUnreg> unRegTickets = [];
   bool retryVisible = false;
+
 
   showAlert(BuildContext context) {
     return showDialog(
@@ -66,6 +68,7 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
           //tap again - visible
           body = jsonDecode(response.body);
           unRegTickets = body.map((e) => GetUnreg.fromJson(e)).toList();
+          unRegTickets = unRegTickets.reversed.toList();
         });
       }
       else {
@@ -151,7 +154,7 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
     pref.remove('cliname');
     pref.remove('pass');
     pref.remove('logo');
-    pref.remove('email');
+    pref.remove('unreg_email');
     pref.remove('phonenumber');
     pref.remove('domainname');
     pref.remove('description');
@@ -166,7 +169,7 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
     pref.setString('cliname',unRegTickets[index].clientname??'');
     pref.setString('pass',unRegTickets[index].password??'');
     pref.setString('logo',unRegTickets[index].logo??'');
-    pref.setString('email',unRegTickets[index].email??'');
+    pref.setString('unreg_email',unRegTickets[index].email??'');
     pref.setString('phonenumber',unRegTickets[index].phonenumber??'');
     pref.setString('domainname',unRegTickets[index].domainName??'');
     pref.setString('description',unRegTickets[index].description??'');
@@ -181,7 +184,7 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
   }
 
 
-    @override
+  @override
   void initState() {
     // TODO: implement initState
     super.initState();
@@ -191,7 +194,7 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
   }
 
 
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -231,47 +234,47 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
                 ),
                 Container(
                     padding: EdgeInsets.only(bottom: 10),
-                  height: MediaQuery.of(context).size.height*0.9,
-                  width: MediaQuery.of(context).size.width,
-                  child:  unRegTickets.length>0?
-                  ListView.builder(
-                    itemCount: unRegTickets.length,
-                      shrinkWrap: true,
-                      itemBuilder: (BuildContext context,int index){
-                    return Column(
-                      children: [
-                        Container(
-                          child:
-                          ListTile(
-                            onTap: (){
-                              ticketsDataToView(index);
-                            },
-                            leading: CircleAvatar(
-                              radius:30,
-                              backgroundImage: NetworkImage(unRegTickets[index].logo),
-                            ),
-                               title: Text(unRegTickets[index].companyname.isNotEmpty?unRegTickets[index].companyname[0].toUpperCase()+unRegTickets[index].companyname.substring(1):'unnamed',
-                                 style: TextStyle(fontSize: 17.5),),
-                            subtitle: Text(unRegTickets[index].createdOn.isNotEmpty?unRegTickets[index].createdOn:'value not found'),
-                            trailing: IconButton(
-                              onPressed: () {
-                                ticketsDataToView(index);
-                              },
-                              icon: Icon(
-                                Icons.arrow_right, size: 35,
-                                color: Colors.blueAccent,),
-                            ),
-                          ),
-                        ),
-                        Divider(height: 0,),
-                      ],
-                    );
-                  }):Center(
-                    child: Container(
-                      padding: EdgeInsets.only(top: 15),
-                      child: Text('No data found!',style: TextStyle(fontSize: 25,color: Colors.deepPurple),),
-                    ),
-                  )
+                    height: MediaQuery.of(context).size.height*0.9,
+                    width: MediaQuery.of(context).size.width,
+                    child:  unRegTickets.length>0?
+                    ListView.builder(
+                        itemCount: unRegTickets.length,
+                        shrinkWrap: true,
+                        itemBuilder: (BuildContext context,int index){
+                          return Column(
+                            children: [
+                              Container(
+                                child:
+                                ListTile(
+                                  onTap: (){
+                                    ticketsDataToView(index);
+                                  },
+                                  leading: CircleAvatar(
+                                    radius:30,
+                                    backgroundImage: NetworkImage(unRegTickets[index].logo),
+                                  ),
+                                  title: Text(unRegTickets[index].companyname.isNotEmpty?unRegTickets[index].companyname[0].toUpperCase()+unRegTickets[index].companyname.substring(1):'unnamed',
+                                    style: TextStyle(fontSize: 17.5),),
+                                  subtitle: Text(unRegTickets[index].createdOn.isNotEmpty?unRegTickets[index].createdOn:'value not found'),
+                                  trailing: IconButton(
+                                    onPressed: () {
+                                      ticketsDataToView(index);
+                                    },
+                                    icon: Icon(
+                                      Icons.arrow_right, size: 35,
+                                      color: Colors.blueAccent,),
+                                  ),
+                                ),
+                              ),
+                              Divider(height: 0,),
+                            ],
+                          );
+                        }):Center(
+                      child: Container(
+                        padding: EdgeInsets.only(top: 15),
+                        child: Text('No data found!',style: TextStyle(fontSize: 25,color: Colors.deepPurple),),
+                      ),
+                    )
                 ),
               ],
             ),
@@ -348,3 +351,4 @@ class GetUnreg {
     return data;
   }
 }
+
