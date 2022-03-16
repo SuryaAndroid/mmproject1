@@ -534,6 +534,7 @@ class _CustomerState extends State<Customer> {
     super.dispose();
     imgPath = "";
   }
+
   @override
   void initState() {
 // TODO: implement initState

@@ -12,7 +12,7 @@ class UnRegister_Tickets extends StatefulWidget {
   UnRegister_Tickets({required this.usertype, required this.currentUser});
 
 @override
-  _UnRegister_TicketsState createState() => _UnRegister_TicketsState(  usertype: usertype, currentUser: currentUser,);
+  _UnRegister_TicketsState createState() => _UnRegister_TicketsState(usertype: usertype, currentUser: currentUser);
 
 }
 
@@ -21,10 +21,8 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
   String currentUser='';
   _UnRegister_TicketsState({required this.usertype, required this.currentUser, });
 
-
   List<GetUnreg> unRegTickets = [];
   bool retryVisible = false;
-
 
   showAlert(BuildContext context) {
     return showDialog(
