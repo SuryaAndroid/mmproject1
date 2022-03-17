@@ -293,7 +293,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
   }
 
   Future<void> mailer() async{
-
+        // var mailOp = new SmtpServer("host")..password("")..username('');
   }
 
   Future<void> sendCompleteMail() async {

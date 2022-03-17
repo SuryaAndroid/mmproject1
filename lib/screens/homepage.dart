@@ -515,7 +515,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Text('  Exit Alert!',
                           style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.w600)),
+                              fontSize: 20, fontWeight: FontWeight.w600
+                          )
+                      ),
                     ],
                   ),
                   content: Text(
@@ -634,6 +636,7 @@ class _HomePageState extends State<HomePage> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
+
                       usertype == "customer"
                           ? Column(
                               children: [
