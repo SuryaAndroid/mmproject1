@@ -575,7 +575,7 @@ class _TeamListState extends State<TeamList> {
             splashColor: Colors.purpleAccent,
           ),
           centerTitle: true,
-          backgroundColor: Color(0Xff146bf7),
+          backgroundColor: Colors.blueAccent,
           title: Text("Team"),
           actions: [
             PopupMenuButton(

@@ -199,7 +199,6 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
             'Email': emailid,
             'Phonenumber': phonenumber,
             'CreatedOn': formatter.format(DateTime.now()),
-            'Logo':logo,
             'CreatedBy':createdby
           }));
       print(jsonDecode(response.body));
@@ -473,7 +472,9 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
                   child: Container(
                     child: CircleAvatar(
                       radius: 45,
-                      backgroundImage:  NetworkImage(logo),
+                      child:  Text(cliname[0].toUpperCase(),
+                        style: TextStyle(fontSize: 30,color: Colors.white,fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ),
                 ), ),

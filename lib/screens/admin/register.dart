@@ -108,7 +108,6 @@ class _RegisterState extends State<Register> {
             'DomainName':doname.toString(),
             'Description':description.toString(),
             'CreatedOn': formatter.format(DateTime.now()),
-            "Logo" : "https://mindmadetech.in/public/images/profile-img.png",
           }));
 
       print(jsonDecode(response.body));

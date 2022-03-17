@@ -327,7 +327,7 @@ class _AdticketNewState extends State<AdticketNew> {
             iconSize: 30,
             splashColor: Colors.purpleAccent,
           ),
-          backgroundColor: Color(0Xff146bf7),
+          backgroundColor:Colors.blueAccent,
         title: Text('New Ticket',style: TextStyle(fontFamily: 'Poppins'),),
         ),
       body:Container(
@@ -339,7 +339,9 @@ class _AdticketNewState extends State<AdticketNew> {
               ),
               Text('Create New Ticket',style: TextStyle(
                   fontSize: 20,
-                  fontWeight: FontWeight.bold
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                  letterSpacing: 1.1
               ),),
               SizedBox(
                 height: 20,

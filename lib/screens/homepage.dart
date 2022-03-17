@@ -20,12 +20,11 @@ class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
 }
+
 class _HomePageState extends State<HomePage> {
-
   //region Global variables
-  Color green =Color(0xff198D0F);
+  Color green = Color(0xff198D0F);
   Color red = Color(0xffE33C3C);
-
 
   int notifyUnSeenCount = 0;
   int teamCount = 0;
@@ -44,9 +43,9 @@ class _HomePageState extends State<HomePage> {
   DateFormat formatter = DateFormat('dd-MM-yyyy hh:mm a');
 
   List countList = [];
-  int cmCount=0;
-  int countIn =0;
-  int nCount =0;
+  int cmCount = 0;
+  int countIn = 0;
+  int nCount = 0;
   int inprogrCount = 0;
 
   TextEditingController phnoController = TextEditingController();
@@ -58,8 +57,8 @@ class _HomePageState extends State<HomePage> {
   //file upload
   String extention = "*";
   String imgPath = "";
-  List<File> files =[];
-  List extensions =[];
+  List<File> files = [];
+  List extensions = [];
   bool imageremove = true;
   bool fileremove = true;
   bool filevisible = false;
@@ -72,9 +71,11 @@ class _HomePageState extends State<HomePage> {
   Future<void> fetchAllCounting() async {
     showAlert(context);
     try {
-      http.Response response = await http.get(Uri.parse("https://mindmadetech.in/api/dashboard/allcounts"));
+      http.Response response = await http
+          .get(Uri.parse("https://mindmadetech.in/api/dashboard/allcounts"));
       if (response.statusCode == 200) {
-        Map<String, dynamic> map = new Map<String, dynamic>.from(jsonDecode(response.body));
+        Map<String, dynamic> map =
+            new Map<String, dynamic>.from(jsonDecode(response.body));
         clientCount = map['customer'];
         teamCount = map['team'];
         ticketCount = map['tickets'];
@@ -82,26 +83,23 @@ class _HomePageState extends State<HomePage> {
         counts = map['notifyunseen'];
         setState(() {
           fetchAllTick();
-          if(counts==0){
+          if (counts == 0) {
             opacity = 0.0;
-          }else{
+          } else {
             context.read<Data>().setCount(counts);
             opacity = 1.0;
           }
           //tap again - false
           admin = true;
-          notiIconVisi=true;
+          notiIconVisi = true;
         });
         Navigator.pop(context);
-      }
-      else {
+      } else {
         //tap again - visible
         Navigator.pop(context);
         onNetworkChecking();
       }
-    }
-    catch(Exception)
-    {
+    } catch (Exception) {
       //tap again - visible
       Navigator.pop(context);
       onNetworkChecking();
@@ -113,17 +111,21 @@ class _HomePageState extends State<HomePage> {
     print('Current user...... $currentUser');
     showAlert(context);
     try {
-      http.Response res =
-      await http.get(Uri.parse(
+      http.Response res = await http.get(Uri.parse(
           'https://mindmadetech.in/api/tickets/Teamtickets/$currentUser'));
       if (res.statusCode == 200) {
         List body = json.decode(res.body);
         countList = body.toList();
-        List comCount = body.where((e) => e['Status'].toLowerCase() == 'completed').toList();
+        List comCount = body
+            .where((e) => e['Status'].toLowerCase() == 'completed')
+            .toList();
 
-        List inCounts = body.where((e) => e['Status'].toLowerCase() == 'inprogress').toList();
+        List inCounts = body
+            .where((e) => e['Status'].toLowerCase() == 'inprogress')
+            .toList();
 
-        List newCount = body.where((e) => e['Status'].toLowerCase() == 'new').toList();
+        List newCount =
+            body.where((e) => e['Status'].toLowerCase() == 'new').toList();
 
         setState(() {
           cmCount = comCount.length;
@@ -139,18 +141,14 @@ class _HomePageState extends State<HomePage> {
           nCount = newCount.length;
           print(newCount.length);
           print('Assign' + '$nCount');
-
         });
         Navigator.pop(context);
-      }
-      else {
+      } else {
         //tap again - visible
         Navigator.pop(context);
         onNetworkChecking();
       }
-    }
-    catch(Exception)
-    {
+    } catch (Exception) {
       //tap again - visible
       Navigator.pop(context);
       onNetworkChecking();
@@ -159,64 +157,62 @@ class _HomePageState extends State<HomePage> {
 //ed
 
 //default loader
-  showAlert(BuildContext context){
+  showAlert(BuildContext context) {
     return showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) {
           return Container(
               child: AlertDialog(
-                  content:Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children:<Widget> [
-                      CircularProgressIndicator(
-                        color: Colors.blue,
-                      ),
-                      Text(' Please wait...',style: TextStyle(fontSize: 18),),
-                    ],
-                  )
-              )
-          );
-        }
-    );
+                  content: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              CircularProgressIndicator(
+                color: Colors.blue,
+              ),
+              Text(
+                ' Please wait...',
+                style: TextStyle(fontSize: 18),
+              ),
+            ],
+          )));
+        });
   }
   //end loader
 
   //screen visibility
-  Future screenVisibility() async{
+  Future screenVisibility() async {
     var pref = await SharedPreferences.getInstance();
     print(pref.getString('usertype'));
     String userType = pref.getString('usertype') ?? '';
-    String currentUserStr = pref.getString('usertypeMail')  ?? '';
+    String currentUserStr = pref.getString('usertypeMail') ?? '';
     print(userType);
-    if(userType=="admin"){
+    if (userType == "admin") {
       setState(() {
         usertype = userType;
         currentUser = currentUserStr;
         fetchAllTick();
         fetchAllCounting();
       });
-    }
-    else if(userType=="team"){
+    } else if (userType == "team") {
       setState(() {
         team = true;
-        notiIconVisi=false;
+        notiIconVisi = false;
         usertype = userType;
         currentUser = currentUserStr;
         Counttk();
       });
-    }
-    else{
+    } else {
       setState(() {
         users = true;
-        notiIconVisi=false;
+        notiIconVisi = false;
         usertype = userType;
         currentUser = currentUserStr;
         // fetchClientDetails();
       });
     }
-    print(admin.toString()+users.toString()+team.toString());
+    print(admin.toString() + users.toString() + team.toString());
   }
   //end
 
@@ -224,41 +220,27 @@ class _HomePageState extends State<HomePage> {
   onNetworkChecking() async {
     bool isOnline = await hasNetwork();
     if (isOnline == false) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('You are Offline!',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14,
-                    fontWeight: FontWeight.bold)
-            ),
-            backgroundColor: Color(0xffcd5c5c),
-            margin: EdgeInsets.only(left: 100,
-                right: 100,
-                bottom: 15),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(
-                    Radius.circular(20))),
-          ));
-    }
-    else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-          SnackBar(
-            content: Text('Back to online!',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14,
-                    fontWeight: FontWeight.bold)
-            ),
-            backgroundColor: Colors.green,
-            margin: EdgeInsets.only(left: 100,
-                right: 100,
-                bottom: 10),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(
-                    Radius.circular(20))),
-          ));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('You are Offline!',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        backgroundColor: Color(0xffcd5c5c),
+        margin: EdgeInsets.only(left: 100, right: 100, bottom: 15),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20))),
+      ));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Back to online!',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.green,
+        margin: EdgeInsets.only(left: 100, right: 100, bottom: 10),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20))),
+      ));
     }
     return isOnline;
   }
@@ -275,19 +257,20 @@ class _HomePageState extends State<HomePage> {
   //end
 
   //file picker
-  void picker() async{
-    print("image path"+imgPath);
+  void picker() async {
+    print("image path" + imgPath);
     print("Entering to file picker........");
-    FilePickerResult? result = await FilePicker.platform.pickFiles(allowMultiple: true,
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
       type: FileType.custom,
-      allowedExtensions: ['jpg','jpeg','png','zip','doc','docx','rar'],
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'zip', 'doc', 'docx', 'rar'],
     );
     PlatformFile file = result.files.first;
-    if (result!=null){
+    if (result != null) {
       setState(() {
         files = result.paths.map((path) => File(path)).toList();
       });
-      for(int i = 0;i<files.length ; i++){
+      for (int i = 0; i < files.length; i++) {
         extensions.add(lookupMimeType(files[i].path));
       }
       print(extensions);
@@ -296,21 +279,32 @@ class _HomePageState extends State<HomePage> {
 //end picker
 
   //file open
-  OpenFiles(List<PlatformFile> files){
+  OpenFiles(List<PlatformFile> files) {
     ListView.builder(
         itemCount: files.length,
-        itemBuilder: (BuildContext context , index){
+        itemBuilder: (BuildContext context, index) {
           return ListTile(
-            leading: Icon(Icons.image,color: Colors.green,size: 40,),
-            title: Text(files[index].path.split('/').last,style: TextStyle(fontSize: 14),),
+            leading: Icon(
+              Icons.image,
+              color: Colors.green,
+              size: 40,
+            ),
+            title: Text(
+              files[index].path.split('/').last,
+              style: TextStyle(fontSize: 14),
+            ),
             trailing: IconButton(
-              onPressed: (){
+              onPressed: () {
                 print('hi');
                 setState(() {
                   files.removeAt(index);
                 });
               },
-              icon: Icon(Icons.close,color: Colors.red,size: 30,),
+              icon: Icon(
+                Icons.close,
+                color: Colors.red,
+                size: 30,
+              ),
             ),
           );
         });
@@ -318,100 +312,102 @@ class _HomePageState extends State<HomePage> {
   //end open file
 
 //add new ticket
-  Future AddNewTicket(String Email, String Phonenumber,
-      String DomainName, String Description) async {
+  Future AddNewTicket(String Email, String Phonenumber, String DomainName,
+      String Description) async {
     showAlert(context);
-    try{
+    try {
       final request = http.MultipartRequest(
-          'POST', Uri.parse('https://mindmadetech.in/api/tickets/new')
-      );
-      if(files.isEmpty){
+          'POST', Uri.parse('https://mindmadetech.in/api/tickets/new'));
+      if (files.isEmpty) {
         request.headers['Content-Type'] = 'multipart/form-data';
-        request.fields.addAll
-          ({
+        request.fields.addAll({
           'Email': Email,
           'Phonenumber': Phonenumber,
           'DomainName': DomainName,
           'Description': Description,
-          'Cus_CreatedOn':formatter.format(DateTime.now()),
+          'Cus_CreatedOn': formatter.format(DateTime.now()),
         });
         http.StreamedResponse response = await request.send();
         String res = await response.stream.bytesToString();
         if (response.statusCode == 200) {
           print(res);
-          if(res.contains('{"statusCode":200,"message":"Submitted Successfully"}')){
+          if (res.contains(
+              '{"statusCode":200,"message":"Submitted Successfully"}')) {
             setState(() {
               phnoController = new TextEditingController(text: "");
               domainController = new TextEditingController(text: "");
               dsController = new TextEditingController(text: "");
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      Icon(Icons.done_all,color: Colors.white,),
-                      Text(' Ticket Submitted Successfully'),
-                    ],
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Row(
+                children: [
+                  Icon(
+                    Icons.done_all,
+                    color: Colors.white,
                   ),
-                  backgroundColor: green,
-                  behavior: SnackBarBehavior.floating,
-                )
-            );
+                  Text(' Ticket Submitted Successfully'),
+                ],
+              ),
+              backgroundColor: green,
+              behavior: SnackBarBehavior.floating,
+            ));
             Navigator.pop(context);
-          }else{
+          } else {
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      Icon(Icons.close,color: Colors.white,),
-                      Text(" Error Occurred!"),
-                    ],
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Row(
+                children: [
+                  Icon(
+                    Icons.close,
+                    color: Colors.white,
                   ),
-                  backgroundColor: red,
-                  behavior: SnackBarBehavior.floating,
-                )
-            );
+                  Text(" Error Occurred!"),
+                ],
+              ),
+              backgroundColor: red,
+              behavior: SnackBarBehavior.floating,
+            ));
           }
-        }
-        else {
+        } else {
           Navigator.pop(context);
           onNetworkChecking();
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.announcement_rounded,color: Colors.white,),
-                    Text(response.reasonPhrase.toString(),style: TextStyle(
-                        fontSize: 14,color: Colors.white
-                    ),),
-                  ],
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  Icons.announcement_rounded,
+                  color: Colors.white,
                 ),
-                backgroundColor:red,
-                behavior: SnackBarBehavior.floating,
-              )
-          );
+                Text(
+                  response.reasonPhrase.toString(),
+                  style: TextStyle(fontSize: 14, color: Colors.white),
+                ),
+              ],
+            ),
+            backgroundColor: red,
+            behavior: SnackBarBehavior.floating,
+          ));
         }
-      }else{
+      } else {
         request.headers['Content-Type'] = 'multipart/form-data';
-        request.fields.addAll
-          ({
+        request.fields.addAll({
           'Email': Email,
           'Phonenumber': Phonenumber,
           'DomainName': DomainName,
           'Description': Description,
-          'Cus_CreatedOn':formatter.format(DateTime.now()),
+          'Cus_CreatedOn': formatter.format(DateTime.now()),
         });
-        for(int i =0 ; i<files.length ;i++){
-          request.files.add(await http.MultipartFile.fromPath('files', files[i].path,
+        for (int i = 0; i < files.length; i++) {
+          request.files.add(await http.MultipartFile.fromPath(
+              'files', files[i].path,
               filename: Path.basename(files[i].path),
-              contentType: MediaType.parse(extensions[i].toString())
-          ));
+              contentType: MediaType.parse(extensions[i].toString())));
         }
         http.StreamedResponse response = await request.send();
         String res = await response.stream.bytesToString();
         if (response.statusCode == 200) {
-          if(res.contains('{"statusCode":200,"message":"Submitted Successfully"}')){
+          if (res.contains(
+              '{"statusCode":200,"message":"Submitted Successfully"}')) {
             setState(() {
               phnoController = new TextEditingController(text: "");
               domainController = new TextEditingController(text: "");
@@ -419,55 +415,60 @@ class _HomePageState extends State<HomePage> {
               extensions = [];
               files = [];
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      Icon(Icons.done_all,color: Colors.white,),
-                      Text(' Ticket Submitted Successfully'),
-                    ],
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Row(
+                children: [
+                  Icon(
+                    Icons.done_all,
+                    color: Colors.white,
                   ),
-                  backgroundColor: green,
-                  behavior: SnackBarBehavior.floating,
-                )
-            );
+                  Text(' Ticket Submitted Successfully'),
+                ],
+              ),
+              backgroundColor: green,
+              behavior: SnackBarBehavior.floating,
+            ));
             Navigator.pop(context);
           }
-        }
-        else {
+        } else {
           Navigator.pop(context);
           onNetworkChecking();
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.announcement_rounded,color: Colors.white,),
-                    Text(response.reasonPhrase.toString(),style: TextStyle(
-                        fontSize: 14,color: Colors.white
-                    ),),
-                  ],
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  Icons.announcement_rounded,
+                  color: Colors.white,
                 ),
-                backgroundColor: Colors.lightGreen,
-                behavior: SnackBarBehavior.floating,
-              )
-          );
+                Text(
+                  response.reasonPhrase.toString(),
+                  style: TextStyle(fontSize: 14, color: Colors.white),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.lightGreen,
+            behavior: SnackBarBehavior.floating,
+          ));
           print(response.reasonPhrase);
         }
       }
-
-    }catch(ex){
+    } catch (ex) {
       Navigator.pop(context);
       onNetworkChecking();
     }
   }
   //endregion
 
-  Future<void> fetchAllTick() async{
-    http.Response response = await http.get(Uri.parse('https://mindmadetech.in/api/tickets/list'));
-    if(response.statusCode==200){
+  Future<void> fetchAllTick() async {
+    http.Response response =
+        await http.get(Uri.parse('https://mindmadetech.in/api/tickets/list'));
+    if (response.statusCode == 200) {
       print('in prog counts.........');
       List body = jsonDecode(response.body);
-      List inProg = body.where((element) => element['Status'].toString().toLowerCase()=='inprogress').toList();
+      List inProg = body
+          .where((element) =>
+              element['Status'].toString().toLowerCase() == 'inprogress')
+          .toList();
       setState(() {
         inprogrCount = inProg.length;
       });
@@ -475,8 +476,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void showfiles(){
-    if(files != null){
+  void showfiles() {
+    if (files != null) {
       imgvisible = true;
       filevisible = true;
     }
@@ -487,54 +488,57 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Future.delayed(
-        Duration.zero, () async {
+    Future.delayed(Duration.zero, () async {
       screenVisibility();
     });
   }
+
   @override
   Widget build(BuildContext context) {
     counts = context.watch<Data>().getcounter();
-    TextEditingController emailController = TextEditingController(text:'$currentUser');
+    TextEditingController emailController =
+        TextEditingController(text: '$currentUser');
     return WillPopScope(
-        onWillPop: () async{
+        onWillPop: () async {
           showDialog(
               barrierDismissible: false,
               context: context,
               builder: (context) {
                 return Container(
                     child: AlertDialog(
-                      title: Row(
-                        children: <Widget>[
-                          Icon(
-                            Icons.warning_outlined,
-                            color: Colors.red,
-                            size: 25,
-                          ),
-                          Text('  Exit Alert!',
-                              style:
-                              TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-                        ],
+                  title: Row(
+                    children: <Widget>[
+                      Icon(
+                        Icons.warning_outlined,
+                        color: Colors.red,
+                        size: 25,
                       ),
-                      content: Text(
-                        'Are you sure to leave this app?',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                      actions: [
-                        FlatButton(
-                            onPressed: () {
-                              Navigator.of(context, rootNavigator: true).pop();
-                            },
-                            child: Text('cancel',
-                                style: TextStyle(fontSize: 16, color: Colors.blue))),
-                        FlatButton(
-                            onPressed: (){
-                              SystemChannels.platform.invokeMethod<void>('SystemNavigator.pop');
-                            },
-                            child: Text('Exit',
-                                style: TextStyle(fontSize: 16, color: Colors.red)))
-                      ],
-                    ));
+                      Text('  Exit Alert!',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                  content: Text(
+                    'Are you sure to leave this app?',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  actions: [
+                    FlatButton(
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: true).pop();
+                        },
+                        child: Text('cancel',
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.blue))),
+                    FlatButton(
+                        onPressed: () {
+                          SystemChannels.platform
+                              .invokeMethod<void>('SystemNavigator.pop');
+                        },
+                        child: Text('Exit',
+                            style: TextStyle(fontSize: 16, color: Colors.red)))
+                  ],
+                ));
               });
           return false;
         },
@@ -542,55 +546,77 @@ class _HomePageState extends State<HomePage> {
             drawer:MainMenus(usertype: usertype, currentUser: currentUser),
             appBar: AppBar(
                 elevation: 0.0,
-                backgroundColor: Color(0Xff146bf7),
+                backgroundColor: Colors.blueAccent,
                 title: Text('Dashboard'),
                 actions: <Widget>[
-                  usertype!="client"
-                      ?IconButton(
-                    padding: EdgeInsets.only(right: 20),
-                    icon: const Icon(Icons.refresh,size: 27,),
-                    onPressed: (){
-                      setState(() {
-                        screenVisibility();
-                      });
-                    },
-                  )
-                      :IconButton(
-                    padding: EdgeInsets.only(right: 20),
-                    icon: const Icon(Icons.exit_to_app,size: 27,),
-                    onPressed: (){
-                      SystemChannels.platform.invokeMethod<void>('SystemNavigator.pop');
-                    },
-                  ),
+                  usertype != "customer"
+                      ? IconButton(
+                          padding: EdgeInsets.only(right: 20),
+                          icon: const Icon(
+                            Icons.refresh,
+                            size: 27,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              screenVisibility();
+                            });
+                          },
+                        )
+                      : IconButton(
+                          padding: EdgeInsets.only(right: 20),
+                          icon: const Icon(
+                            Icons.exit_to_app,
+                            size: 27,
+                          ),
+                          onPressed: () {
+                            SystemChannels.platform
+                                .invokeMethod<void>('SystemNavigator.pop');
+                          },
+                        ),
                   Visibility(
                     visible: notiIconVisi,
                     child: Container(
                       child: Stack(
-                        children:<Widget> [
+                        children: <Widget>[
                           IconButton(
                             padding: EdgeInsets.only(right: 20),
-                            icon: const Icon(Icons.notifications,size: 30,),
-                            onPressed: (){
-                              Navigator.push(context,
-                                MaterialPageRoute(builder: (context)=>NotifScreen()),);
+                            icon: const Icon(
+                              Icons.notifications,
+                              size: 30,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => NotifScreen()),
+                              );
                             },
                           ),
                           Positioned(
                             top: 4,
                             right: 10,
                             child: Opacity(
-                              opacity:counts!=0?1.0:0.0,
+                              opacity: counts != 0 ? 1.0 : 0.0,
                               child: GestureDetector(
-                                onTap: (){
-                                  Navigator.push(context,
-                                    MaterialPageRoute(builder: (context)=>NotifScreen()),);
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => NotifScreen()),
+                                  );
                                 },
                                 child: CircleAvatar(
                                   backgroundColor: Colors.red,
                                   radius: 10,
                                   child: Padding(
                                     padding: const EdgeInsets.only(bottom: 2),
-                                    child:Text("$counts",style: TextStyle(color:Colors.white,fontSize: 10,fontWeight: FontWeight.bold),),
+                                    child: Text(
+                                      "$counts",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -600,517 +626,730 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                ]
-            ),
+                ]),
             body: Container(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
                 color: Color(0XFFffffff),
-                child:SingleChildScrollView(
+                child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      usertype=="customer"?
-                      Column(
-                        children: [
-                          SizedBox(
-                            height: 20,
-                          ),
-                          Text('Create New Ticket',style: TextStyle(
-                              fontSize: 20,fontWeight: FontWeight.bold,color: Colors.blue
-                          ),),
-                          SizedBox(
-                            height: 20,
-                          ),
-                          SingleChildScrollView(
-                              child: Form(
-                                  child:Container(
-                                    margin: EdgeInsets.symmetric(horizontal: 20),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        TextFormField(
-                                          enabled: false,
-                                          decoration: const InputDecoration(
-                                            hintText: 'Enter a Email Id',
-                                            labelText: 'Email Id',
-                                          ),
-                                          controller:emailController,
-                                          keyboardType: TextInputType.emailAddress,
+                      usertype == "customer"
+                          ? Column(
+                              children: [
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'Create New Ticket',
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue),
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                SingleChildScrollView(
+                                    child: Form(
+                                        child: Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 20),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      TextFormField(
+                                        enabled: false,
+                                        decoration: const InputDecoration(
+                                          hintText: 'Enter a Email Id',
+                                          labelText: 'Email Id',
                                         ),
-                                        TextFormField(
-                                          decoration: const InputDecoration(
-                                            hintText: 'Enter Number',
-                                            labelText: 'Phone Number',
-                                          ),
-                                          controller: phnoController,
-                                          keyboardType: TextInputType.phone,
-                                          maxLength: 10,
-
+                                        controller: emailController,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                      ),
+                                      TextFormField(
+                                        decoration: const InputDecoration(
+                                          hintText: 'Enter Number',
+                                          labelText: 'Phone Number',
                                         ),
-                                        TextFormField(
-                                          decoration: const InputDecoration(
-                                            hintText: 'Enter a Domain Name',
-                                            labelText: 'Domain Name',
-                                          ),
-                                          controller: domainController,
-                                          keyboardType: TextInputType.url,
+                                        controller: phnoController,
+                                        keyboardType: TextInputType.phone,
+                                        maxLength: 10,
+                                      ),
+                                      TextFormField(
+                                        decoration: const InputDecoration(
+                                          hintText: 'Enter a Domain Name',
+                                          labelText: 'Domain Name',
                                         ),
-                                        TextFormField(
-                                          decoration: InputDecoration(
-                                              hintText: 'Enter your Issue here',
-                                              labelText: 'Description'
-                                          ),
-                                          maxLines: 100,
-                                          minLines: 3,
-                                          controller: dsController,
-                                        ),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            ElevatedButton(onPressed: () async {
+                                        controller: domainController,
+                                        keyboardType: TextInputType.url,
+                                      ),
+                                      TextFormField(
+                                        decoration: InputDecoration(
+                                            hintText: 'Enter your Issue here',
+                                            labelText: 'Description'),
+                                        maxLines: 100,
+                                        minLines: 3,
+                                        controller: dsController,
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          ElevatedButton(
+                                            onPressed: () async {
                                               setState(() {
                                                 showfiles();
                                               });
                                               picker();
                                             },
-                                              style: ElevatedButton.styleFrom(
-                                                shape: StadiumBorder(),
-                                                onPrimary: Colors.white,
-                                              ),
-                                              child: Text('Choose file...',style: TextStyle(fontSize: 17),),
+                                            style: ElevatedButton.styleFrom(
+                                              shape: StadiumBorder(),
+                                              onPrimary: Colors.white,
                                             ),
-
-                                            ElevatedButton(onPressed: () {
-                                              if(emailController.text.isEmpty||
-                                                  phnoController.text.isEmpty||
-                                                  domainController.text.isEmpty||
-                                                  dsController.text.isEmpty||phnoController.text.length<10){
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text('Please fill correct values'),
-                                                      backgroundColor: Colors.red[600],
-                                                    )
-                                                );
-                                              }else{
+                                            child: Text(
+                                              'Choose file...',
+                                              style: TextStyle(fontSize: 17),
+                                            ),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              if (emailController
+                                                      .text.isEmpty ||
+                                                  phnoController.text.isEmpty ||
+                                                  domainController
+                                                      .text.isEmpty ||
+                                                  dsController.text.isEmpty ||
+                                                  phnoController.text.length <
+                                                      10) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(SnackBar(
+                                                  content: Text(
+                                                      'Please fill correct values'),
+                                                  backgroundColor:
+                                                      Colors.red[600],
+                                                ));
+                                              } else {
                                                 AddNewTicket(
-                                                    emailController.text.toString(),
-                                                    phnoController.text.toString(),
-                                                    domainController.text.toString(),
-                                                    dsController.text.toString()
-                                                );
+                                                    emailController.text
+                                                        .toString(),
+                                                    phnoController.text
+                                                        .toString(),
+                                                    domainController.text
+                                                        .toString(),
+                                                    dsController.text
+                                                        .toString());
                                               }
                                             },
-                                              style: ElevatedButton.styleFrom(
-                                                shape: StadiumBorder(),
-                                                onPrimary: Colors.white,
-                                              ),child: Text("submit",style: TextStyle(fontSize: 17),),),
+                                            style: ElevatedButton.styleFrom(
+                                              shape: StadiumBorder(),
+                                              onPrimary: Colors.white,
+                                            ),
+                                            child: Text(
+                                              "submit",
+                                              style: TextStyle(fontSize: 17),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Container(
+                                        child: ListView.builder(
+                                            physics:
+                                                NeverScrollableScrollPhysics(),
+                                            shrinkWrap: true,
+                                            itemCount: files.length,
+                                            itemBuilder:
+                                                (BuildContext context, index) {
+                                              return ListTile(
+                                                leading: Icon(
+                                                  Icons.image,
+                                                  color: Colors.green,
+                                                  size: 40,
+                                                ),
+                                                title: Text(
+                                                  files[index]
+                                                      .path
+                                                      .split('/')
+                                                      .last,
+                                                  style:
+                                                      TextStyle(fontSize: 14),
+                                                ),
+                                                trailing: IconButton(
+                                                  onPressed: () {
+                                                    print('hi');
+                                                    setState(() {
+                                                      files.removeAt(index);
+                                                      if (files.length == -1) {
+                                                        imageremove = false;
+                                                      }
+                                                    });
+                                                  },
+                                                  icon: Icon(
+                                                    Icons.close,
+                                                    color: Colors.red,
+                                                    size: 30,
+                                                  ),
+                                                ),
+                                              );
+                                            }),
+                                      ),
+                                    ],
+                                  ),
+                                )))
+                              ],
+                            )
+                          : Container(),
+                      usertype == "admin"
+                          ? Container(
+                              child: Column(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(8),
+                                    width: double.infinity,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.9,
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Card(
+                                              color: Colors.orange,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(20.0),
+                                              ),
+                                              child: Container(
+                                                height: 200,
+                                                width: 160,
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons
+                                                          .local_attraction_outlined,
+                                                      size: 45,
+                                                      color: Colors.white,
+                                                    ),
+                                                    SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    Text(
+                                                      'No Of Tickets',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    Text(
+                                                      '$ticketCount',
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          fontSize: 20),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            Card(
+                                              color: Colors.green,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(20.0),
+                                              ),
+                                              child: Container(
+                                                height: 200,
+                                                width: 160,
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.account_circle,
+                                                      size: 40,
+                                                      color: Colors.white,
+                                                    ),
+                                                    SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    Text(
+                                                      'No Of Clients',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    Text(
+                                                      '$clientCount',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 20,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
                                           ],
                                         ),
-
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Card(
+                                              color: Colors.purple,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(20.0),
+                                              ),
+                                              child: Container(
+                                                height: 200,
+                                                width: 160,
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.group_rounded,
+                                                      size: 40,
+                                                      color: Colors.white,
+                                                    ),
+                                                    SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    Text(
+                                                      'No Of Team',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    Text(
+                                                      '$teamCount',
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 20),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                            Card(
+                                              color: Colors.redAccent,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(20.0),
+                                              ),
+                                              child: Container(
+                                                height: 200,
+                                                width: 160,
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      CupertinoIcons.clock,
+                                                      size: 40,
+                                                      color: Colors.white,
+                                                    ),
+                                                    SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    Text(
+                                                      'No Of \nInprogress',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                      height: 10,
+                                                    ),
+                                                    Text(
+                                                      '$inprogrCount',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                         Container(
-                                          child: ListView.builder(
-                                              physics: NeverScrollableScrollPhysics(),
-                                              shrinkWrap: true,
-                                              itemCount: files.length,
-                                              itemBuilder: (BuildContext context , index){
-                                                return ListTile(
-                                                  leading: Icon(Icons.image,color: Colors.green,size: 40,),
-                                                  title: Text(files[index].path.split('/').last,style: TextStyle(fontSize: 14),),
-                                                  trailing: IconButton(
-                                                    onPressed: (){
-                                                      print('hi');
-                                                      setState(() {
-                                                        files.removeAt(index);
-                                                        if (files.length == -1) {
-                                                          imageremove = false;
-                                                        }
-                                                      });
-                                                    },
-                                                    icon: Icon(Icons.close,color: Colors.red,size: 30,),
-                                                  ),
-                                                );
-                                              }),
+                                          width: 200,
+                                          height: 50,
+                                          margin: EdgeInsets.only(top: 30),
+                                          child: RaisedButton(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(20.0),
+                                            ),
+                                            color: Colors.blueAccent,
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        Tickets(
+                                                          usertype: usertype,
+                                                          currentUser:
+                                                              currentUser,
+                                                        )),
+                                              );
+                                            },
+                                            child: Text(
+                                              'Go To Tickets',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 200,
+                                          height: 50,
+                                          margin: EdgeInsets.only(top: 30),
+                                          child: RaisedButton(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(20.0),
+                                            ),
+                                            color: Colors.blueAccent,
+                                            onPressed: () {
+                                              SystemChannels.platform
+                                                  .invokeMethod(
+                                                      'SystemNavigator.pop');
+                                            },
+                                            child: Text(
+                                              'Exit App',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  )
-                              )
-                          )
-                        ],
-                      ):Container(),
-                      usertype=="admin"?Container(
-                        child: Column(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(8),
-                              width: double.infinity,
-                              height: MediaQuery.of(context).size.height*0.9,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Card(
-                                        color: Colors.orange,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(20.0),
-                                        ),
-                                        child: Container(
-                                          height:200,
-                                          width: 160,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Icon(Icons.local_attraction_outlined,size: 45,color: Colors.white,),
-                                              SizedBox(height: 10,),
-                                              Text('No Of Tickets',style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                              ),),
-                                              SizedBox(height: 10,),
-                                              Text('$ticketCount',style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w900,
-                                                  fontSize: 20
-                                              ),),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Card(
-                                        color: Colors.green,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(20.0),
-                                        ),
-                                        child: Container(
-                                          height:200,
-                                          width: 160,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Icon(Icons.account_circle ,size: 40,color: Colors.white,),
-                                              SizedBox(height: 10,),
-                                              Text('No Of Clients',style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                              ),),
-                                              SizedBox(height: 10,),
-                                              Text('$clientCount',style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20,
-                                              ),),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Card(
-                                        color: Colors.purple,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(20.0),
-                                        ),
-                                        child: Container(
-                                          height:200,
-                                          width: 160,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Icon(Icons.group_rounded,size: 40,color: Colors.white,),
-                                              SizedBox(height: 10,),
-                                              Text('No Of Team',style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                              ),),
-                                              SizedBox(height: 10,),
-                                              Text('$teamCount',style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20
-                                              ),),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Card(
-                                        color: Colors.redAccent,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(20.0),
-                                        ),
-                                        child: Container(
-                                          height:200,
-                                          width: 160,
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Icon(CupertinoIcons.clock ,size: 40,color: Colors.white,),
-                                              SizedBox(height: 10,),
-                                              Text('No Of \nInprogress',
-                                                textAlign: TextAlign.center
-                                                ,style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                ),),
-                                              SizedBox(height: 10,),
-                                              Text('$inprogrCount',style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                              ),),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Container(
-                                    width: 200,
-                                    height: 50,
-                                    margin: EdgeInsets.only(top: 30),
-                                    child: RaisedButton(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20.0),
-                                      ),
-                                      color: Colors.blueAccent,
-                                      onPressed: (){
-                                        Navigator.push(context,
-                                          MaterialPageRoute(builder: (context)=>Tickets(
-                                            usertype: usertype,
-                                            currentUser:currentUser,
-                                          )),);
-                                      },
-                                      child: Text('Go To Tickets',style: TextStyle(
-                                          color: Colors.white
-                                      ),),
-                                    ),
-                                  ),
-                                  Container(
-                                    width: 200,
-                                    height: 50,
-                                    margin: EdgeInsets.only(top: 30),
-                                    child: RaisedButton(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20.0),
-                                      ),
-                                      color: Colors.blueAccent,
-                                      onPressed: (){
-                                        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-                                      },
-                                      child: Text('Exit App',style: TextStyle(
-                                          color: Colors.white
-                                      ),),
-                                    ),
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
-                        ),
-                      ):Container(),
-                      usertype=="team"?Container(
-                        width: MediaQuery.of(context).size.width,
-                        child: Column(
-                          children: <Widget>[
-                            SizedBox(height: 20,),
-                            Container(
-                              padding: EdgeInsets.only(left: 20, right: 20),
-                              width: 300,
-                              height: 150,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 5.0,
-                                    ),
-                                  ]
-                              ),
+                            )
+                          : Container(),
+                      usertype == "team"
+                          ? Container(
+                              width: MediaQuery.of(context).size.width,
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  Container(
-                                      child: (team == true) ? Text("Tickets Assigned",
-                                        style: TextStyle(fontSize: 21,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue),) :
-                                      Text("No of Tickets",
-                                        style: TextStyle(fontSize: 21,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue),)
+                                  SizedBox(
+                                    height: 20,
                                   ),
                                   Container(
-                                    padding: EdgeInsets.only(right: 20),
-
-                                    child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    padding:
+                                        EdgeInsets.only(left: 20, right: 20),
+                                    width: 300,
+                                    height: 150,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.white,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black26,
+                                            blurRadius: 5.0,
+                                          ),
+                                        ]),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Container(
+                                            child: (team == true)
+                                                ? Text(
+                                                    "Tickets Assigned",
+                                                    style: TextStyle(
+                                                        fontSize: 21,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.blue),
+                                                  )
+                                                : Text(
+                                                    "No of Tickets",
+                                                    style: TextStyle(
+                                                        fontSize: 21,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.blue),
+                                                  )),
+                                        Container(
+                                          padding: EdgeInsets.only(right: 20),
+                                          child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: <Widget>[
+                                                Container(
+                                                  child: (team == true)
+                                                      ? Text(
+                                                          "$nCount",
+                                                          style: TextStyle(
+                                                              fontSize: 32,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: Color(
+                                                                  0XFF0949b0)),
+                                                        )
+                                                      : Text(
+                                                          "$ticketCount",
+                                                          style: TextStyle(
+                                                              fontSize: 32,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: Color(
+                                                                  0XFF0949b0)),
+                                                        ),
+                                                ),
+                                                Container(
+                                                    child: Icon(
+                                                  Icons
+                                                      .confirmation_number_sharp,
+                                                  color: Colors.blue,
+                                                  size: 48,
+                                                )),
+                                              ]),
+                                        ),
+                                        Container(
+                                          child: Text(
+                                            "Last Ticket No",
+                                            style: TextStyle(
+                                                color: Colors.black54),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 30,
+                                  ),
+                                  Container(
+                                    padding:
+                                        EdgeInsets.only(left: 20, right: 20),
+                                    width: 300,
+                                    height: 150,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.white,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black26,
+                                            blurRadius: 5.0,
+                                          ),
+                                        ]),
+                                    child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: <Widget>[
                                           Container(
-                                            child: (team == true) ? Text("$nCount",
-                                              style: TextStyle(
-                                                  fontSize: 32, fontWeight: FontWeight.bold,
-                                                  color: Color(0XFF0949b0)),) :
-                                            Text("$ticketCount",
-                                              style: TextStyle(
-                                                  fontSize: 32, fontWeight: FontWeight.bold,
-                                                  color: Color(0XFF0949b0)),),
+                                            child: (team == true)
+                                                ? Text(
+                                                    "Tickets In progress",
+                                                    style: TextStyle(
+                                                        fontSize: 21,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.blue),
+                                                  )
+                                                : Text(
+                                                    "No of Users",
+                                                    style: TextStyle(
+                                                        fontSize: 21,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.blue),
+                                                  ),
                                           ),
                                           Container(
-                                              child: Icon(Icons.confirmation_number_sharp,
-                                                color: Colors.blue, size: 48,)
+                                            padding: EdgeInsets.only(right: 20),
+                                            child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: <Widget>[
+                                                  Container(
+                                                    child: (team == true)
+                                                        ? Text(
+                                                            '$countIn',
+                                                            style: TextStyle(
+                                                                fontSize: 32,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Color(
+                                                                    0XFF0949b0)),
+                                                          )
+                                                        : Text(
+                                                            "$clientCount",
+                                                            style: TextStyle(
+                                                                fontSize: 32,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Color(
+                                                                    0XFF0949b0)),
+                                                          ),
+                                                  ),
+                                                  Container(
+                                                      child: Icon(
+                                                    Icons.groups_sharp,
+                                                    color: Colors.blue,
+                                                    size: 48,
+                                                  )),
+                                                ]),
                                           ),
-                                        ]
-                                    ),
+                                          Container(
+                                            child: Text(
+                                              "Last Ticket No",
+                                              style: TextStyle(
+                                                  color: Colors.black54),
+                                            ),
+                                          ),
+                                        ]),
+                                  ),
+                                  SizedBox(
+                                    height: 30,
                                   ),
                                   Container(
-                                    child: Text("Last Ticket No",
-                                      style: TextStyle(color: Colors.black54),),
+                                    padding:
+                                        EdgeInsets.only(left: 20, right: 20),
+                                    width: 300,
+                                    height: 150,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.white,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black26,
+                                            blurRadius: 5.0,
+                                          ), //BoxShadow
+                                        ]),
+                                    child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Container(
+                                            child: (team == true)
+                                                ? Text(
+                                                    "Tickets Completed",
+                                                    style: TextStyle(
+                                                        fontSize: 21,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.blue),
+                                                  )
+                                                : Text(
+                                                    "Team members ",
+                                                    style: TextStyle(
+                                                        fontSize: 21,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.blue),
+                                                  ),
+                                          ),
+                                          Container(
+                                            padding: EdgeInsets.only(right: 20),
+                                            child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: <Widget>[
+                                                  Container(
+                                                    child: (team == true)
+                                                        ? Text(
+                                                            '$cmCount',
+                                                            style: TextStyle(
+                                                                fontSize: 32,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Color(
+                                                                    0XFF0949b0)),
+                                                          )
+                                                        : Text(
+                                                            "$teamCount",
+                                                            style: TextStyle(
+                                                                fontSize: 32,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Color(
+                                                                    0XFF0949b0)),
+                                                          ),
+                                                  ),
+                                                  Container(
+                                                      child: Icon(
+                                                    Icons
+                                                        .confirmation_number_outlined,
+                                                    color: Colors.blue,
+                                                    size: 48,
+                                                  )),
+                                                ]),
+                                          ),
+                                          Container(
+                                            child: Text(
+                                              "Last Ticket No",
+                                              style: TextStyle(
+                                                  color: Colors.black54),
+                                            ),
+                                          ),
+                                        ]),
                                   ),
                                 ],
                               ),
-                            ),
-
-                            SizedBox(height: 30,),
-
-                            Container(
-                              padding: EdgeInsets.only(left: 20, right: 20),
-                              width: 300,
-                              height: 150,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 5.0,),
-                                  ]
-                              ),
-                              child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Container(
-                                      child: (team == true) ? Text("Tickets In progress",
-                                        style: TextStyle(fontSize: 21,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue),) :
-                                      Text("No of Users",
-                                        style: TextStyle(fontSize: 21,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue),),
-                                    ),
-                                    Container(
-                                      padding: EdgeInsets.only(right: 20),
-                                      child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: <Widget>[
-
-                                            Container(
-                                              child: (team == true) ? Text('$countIn',
-                                                style: TextStyle(fontSize: 32,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0XFF0949b0)),) :
-                                              Text("$clientCount",
-                                                style: TextStyle(fontSize: 32,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0XFF0949b0)),),
-                                            ),
-                                            Container(
-                                                child: Icon(Icons.groups_sharp,
-                                                  color: Colors.blue, size: 48,)
-                                            ),
-                                          ]
-                                      ),
-                                    ),
-
-                                    Container(
-                                      child: Text("Last Ticket No",
-                                        style: TextStyle(color: Colors.black54),),
-                                    ),
-
-                                  ]
-                              ),
-                            ),
-
-                            SizedBox(height: 30,),
-                            Container(
-                              padding: EdgeInsets.only(left: 20, right: 20),
-                              width: 300,
-                              height: 150,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 5.0,
-                                    ), //BoxShadow
-                                  ]
-                              ),
-                              child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Container(
-                                      child: (team == true) ? Text("Tickets Completed",
-                                        style: TextStyle(fontSize: 21,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue),) :
-                                      Text("Team members ",
-                                        style: TextStyle(fontSize: 21,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue),),
-                                    ),
-                                    Container(
-                                      padding: EdgeInsets.only(right: 20),
-                                      child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: <Widget>[
-                                            Container(
-                                              child: (team == true) ? Text('$cmCount',
-                                                style: TextStyle(fontSize: 32,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0XFF0949b0)),) :
-                                              Text("$teamCount",
-                                                style: TextStyle(fontSize: 32,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Color(0XFF0949b0)),),
-                                            ),
-                                            Container(
-                                                child: Icon(Icons
-                                                    .confirmation_number_outlined,
-                                                  color: Colors.blue, size: 48,)
-                                            ),
-                                          ]
-                                      ),
-                                    ),
-                                    Container(
-                                      child: Text("Last Ticket No",
-                                        style: TextStyle(color: Colors.black54),),
-                                    ),
-                                  ]
-                              ),
-
-                            ),
-                          ],
-                        ),
-                      ):Container(),
+                            )
+                          : Container(),
                     ],
                   ),
-                )
-
-            )
-        ));
+                ))));
   }
 }
-
-

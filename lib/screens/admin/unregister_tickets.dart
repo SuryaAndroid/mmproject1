@@ -206,7 +206,7 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
           splashColor: Colors.purpleAccent,
         ),
         title: Text('Un Reg Tickets'),
-        backgroundColor: Color(0Xff146bf7),
+        backgroundColor:Colors.blueAccent,
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -250,11 +250,13 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
                                     ticketsDataToView(index);
                                   },
                                   leading: CircleAvatar(
-                                    radius:30,
-                                    backgroundImage: NetworkImage(unRegTickets[index].logo),
+                                    radius:25,
+                                    child: Text(unRegTickets[index].companyname[0].toUpperCase(),
+                                    style: TextStyle(fontSize: 20,color: Colors.white,fontWeight: FontWeight.w600),
+                                    ),
                                   ),
                                   title: Text(unRegTickets[index].companyname.isNotEmpty?unRegTickets[index].companyname[0].toUpperCase()+unRegTickets[index].companyname.substring(1):'unnamed',
-                                    style: TextStyle(fontSize: 17.5),),
+                                    style: TextStyle(),),
                                   subtitle: Text(unRegTickets[index].createdOn.isNotEmpty?unRegTickets[index].createdOn:'value not found'),
                                   trailing: IconButton(
                                     onPressed: () {

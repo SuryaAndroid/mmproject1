@@ -292,13 +292,16 @@ class _TicketViewPageState extends State<TicketViewPage> {
         });
   }
 
+  Future<void> mailer() async{
+
+  }
+
   Future<void> sendCompleteMail() async {
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Sending mail...'),
         )
     );
-
     try{
       String username = 'durgadevi@mindmade.in';
       String password = 'Appu#001';
@@ -311,8 +314,8 @@ class _TicketViewPageState extends State<TicketViewPage> {
           Address('surya@mindmade.in'),
         ])
       // ..bccRecipients.add('bccAddress@example.com')
-        ..subject = 'Ticket completed ${formatter.format(DateTime.now())}'
-        ..text = 'Dear Sir/Madam,n\n'
+        ..subject = 'MindMade Support'
+        ..text = 'Dear Sir/Madam,\n\n'
             'Greetings from MindMade Customer Support Team!!! \n\n'
             "We're reaching out to you in regards to the ticket (#$ticketId) we completed for you.\n\n"
             "Don't hesitate to contact us if you have questions or concerns.\n\n"
@@ -350,7 +353,6 @@ class _TicketViewPageState extends State<TicketViewPage> {
   }
 
   Future<void> sendAssignMail() async{
-
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Sending Mail To Team(s)....'),
@@ -1021,6 +1023,8 @@ class _TicketViewPageState extends State<TicketViewPage> {
 // TODO: implement initState
     super.initState();
     getPref();
+    String hi = "jiiiii\b";
+    print(hi);
     loadGivenData();
         () async {
       var _permissionStatus = await Permission.storage.status;
@@ -1046,7 +1050,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
             splashColor: Colors.purpleAccent,
           ),
           centerTitle: true,
-          backgroundColor: Color(0Xff146bf7),
+          backgroundColor: Colors.blueAccent,
           title: Text('Ticket ID : $ticketId'),
         ),
         floatingActionButton: this.Status.toLowerCase() == "completed"
@@ -1167,7 +1171,9 @@ class _TicketViewPageState extends State<TicketViewPage> {
                     ),
                     children: <Widget>[
                       ids.isNotEmpty?
-                      userType=="admin"?TextButton(
+                      userType=="admin"?
+                      Status.toLowerCase()!="completed"?
+                      TextButton(
                         onPressed: () {
                           setState(() {
                             confirmDialogTeamRe();
@@ -1189,7 +1195,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
                           ],
                         ),
                       ):
-                      Container():Container(),
+                      Container():Container():Container(),
                       ids.isNotEmpty
                           ? ListView.builder(
                           itemCount: teamsIndex.length,

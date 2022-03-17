@@ -577,7 +577,7 @@ class _CustomerState extends State<Customer> {
             splashColor: Colors.purpleAccent,
           ),
           centerTitle: true,
-          backgroundColor: Color(0Xff146bf7),
+          backgroundColor:Colors.blueAccent,
           title:Text('Clients')
       ),
       body: SingleChildScrollView(
@@ -642,7 +642,6 @@ class _CustomerState extends State<Customer> {
                     padding: const EdgeInsets.all(15.0),
                     child: InkWell(
                         child:Text("Load Failed, Tap here to retry !",
-
                           style: TextStyle(color: Colors.red, fontSize: 16),
                         ),
                         onTap: () => setState(()
@@ -671,9 +670,16 @@ class _CustomerState extends State<Customer> {
                                   },
                                   leading: Container(
                                     child: CircleAvatar(
+                                      backgroundColor: Colors.indigo,
                                       radius: 40,
-                                      backgroundImage:
-                                      NetworkImage(data[index].Logo),
+                                      child: Text(
+                                        data[index].Companyname[0].toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white
+                                        ),
+                                      ),
                                     ),
                                   ),
                                   title:(data[index].Companyname.isNotEmpty)? Text(
@@ -681,7 +687,8 @@ class _CustomerState extends State<Customer> {
                                         data[index].Companyname.substring(1).toLowerCase(),
                                     style: TextStyle(fontSize: 17.5),
                                   ):Text('value not specified'),
-                                  subtitle:(data[index].Email.isNotEmpty)?Text(data[index].Email.toString(),maxLines: 1,):Text('mail id not specified'),
+                                  subtitle:(data[index].Email.isNotEmpty)?
+                                  Text(data[index].Email.toString(),maxLines: 1,):Text('mail id not specified'),
                                   trailing: IconButton(
                                     onPressed: () {
                                       passDatatoScren(index);
@@ -699,7 +706,6 @@ class _CustomerState extends State<Customer> {
                                 ),
                               ])
                                   : Container();
-
                             }):Center(
                           child: Container(
                             padding: EdgeInsets.only(top: 15),

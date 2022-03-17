@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:mmcustomerservice/screens/admin/Customer.dart';
 import 'package:mmcustomerservice/screens/admin/customerviewpage.dart';
@@ -19,6 +20,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   List<GetCustomer> data = [];
   String user='';
+  bool clicked = false;
 
   showAlert(BuildContext context) {
     return showDialog(
@@ -43,7 +45,6 @@ class _ProfilePageState extends State<ProfilePage> {
         });
   }
 
-
   Future<void> CusProfile() async{
     showAlert(context);
     try{
@@ -53,16 +54,28 @@ class _ProfilePageState extends State<ProfilePage> {
       if(response.statusCode == 200){
         setState(() {
           List b = jsonDecode(response.body);
+          print('List $b');
           data = b.map((e) => GetCustomer.fromJson(e)).toList();
         });
         Navigator.pop(context);
+      }else{
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sever busy! try again later',style: TextStyle(
+              color: Colors.white
+            ),),
+            backgroundColor: Colors.blueAccent,
+            behavior: SnackBarBehavior.floating,
+
+          )
+        );
       }
     }catch(ex){
       print(ex);
       Navigator.pop(context);
     }
   }
-
 
   @override
   void initState() {
@@ -78,172 +91,142 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile',style: TextStyle(color: Colors.white),),
+        title: Text('My Profile',style: TextStyle(fontWeight:FontWeight.bold,color: Colors.black),),
+        centerTitle: true,
         leading: IconButton(
-          onPressed: (){Navigator.pop(context);},
-          icon:Icon(CupertinoIcons.back,color: Colors.white,),
+          onPressed: ()
+            {
+            Navigator.pop(context);
+            },
+          icon:Icon(CupertinoIcons.back,color: Colors.blueAccent,),
           iconSize: 30,
           splashColor: Colors.purpleAccent,
         ),
-        backgroundColor: Colors.blue,
-        centerTitle: true,
+        backgroundColor: Colors.white,
         elevation: 0,
       ),
       backgroundColor: Colors.white,
       body: Container(
-        child: ListView.builder(
-            itemCount: data.length,
-            itemBuilder: (BuildContext context, int index) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Stack(
+        height: MediaQuery.of(context).size.height,
+        child: data.isNotEmpty?Column(
+          children: [
+            Stack(
+              children: [
+                Container(
+                  height: 300,
+                  decoration: BoxDecoration(
+                    color: Colors.blueAccent,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(120),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.only(top: 20),
+                  width: double.infinity,
+                  height: 270,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(200),
+                        bottomRight: Radius.circular(200)
+                    ),
+                  ),
+                  child: Column(
                     children: [
-                      Positioned(
-                        child: Padding(
-                          padding:EdgeInsets.symmetric(horizontal: 10,vertical: 70),
-                          child: Container(
-                            height: MediaQuery.of(context).size.height*0.7,
-                            decoration: BoxDecoration(
-                                color: Color(0Xffadcaf7),
-                                borderRadius: BorderRadius.circular(20)
-                            ),
-                          ),
-                        ),
+                      CircleAvatar(
+                        radius: 50,
+                        child: Text(data[0].Email[0].toUpperCase(),style: TextStyle(
+                          fontSize: 45,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white
+                        ),),
                       ),
-                      Positioned(
-                        left: 120,
-                        top: 20,
-                        child: Container(
-                          padding: EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(100)
-                          ),
-                          child: CircleAvatar(
-                              radius: 60,
-                              backgroundImage: NetworkImage(data[index].Logo)
-                          ),
-                        ),
+                      Padding(
+                        padding: const EdgeInsets.only(top:10.0),
+                        child: Text(data[0].Email,style: TextStyle(
+                          fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black
+                        ),),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Container(
+              padding: EdgeInsets.all(25),
+              width: double.infinity,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.account_circle,color: Colors.black54,size: 30,),
+                      title: Text('Name'),
+                      subtitle: Text(data[0].Email),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.group_rounded,color: Colors.black54,size: 30,),
+                      title: Text('Company'),
+                      subtitle: Text(data[0].Companyname),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.phone,color: Colors.black54,size: 30,),
+                      title: Text('Phone Number'),
+                      subtitle: Text(data[0].Phonenumber),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.vpn_key_outlined,color: Colors.black54,size: 30,),
+                      title: Text('Password'),
+                      subtitle: Text(clicked==true?data[0].Password:"******",style: TextStyle(
+                        fontSize: 17
+                      ),),
+                      trailing: IconButton(
+                        onPressed: (){
+                          if(clicked==false){
+                            setState(() {
+                              clicked=true;
+                            });
+                          }else{
+                            setState(() {
+                              clicked=false;
+                            });
+                          }
+                        },
+                        icon: Icon(Icons.remove_red_eye_outlined,color: clicked==true?Colors.black:Colors.black54,),
                       ),
-                      Positioned(
-                        top: 200,
-                        left: 35,
-                        child: Container(
-                          padding: EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    Container(
+                      height: 45,
+                      child: RaisedButton(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)
+                        ),
+                          color: Colors.blueAccent,
+                          onPressed: (){
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ChangePassword()),
+                            );
+                          },
+                          child: Row(
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.only(right: 10),
-                                    child: Text('Email Id :',style: TextStyle(color: Colors.black45),),
-                                  ),
-                                  Container(
-                                      padding: EdgeInsets.only(right: 150),
-                                      margin: EdgeInsets.only(bottom: 15),
-                                      child: (data[index].Email.isNotEmpty)?
-                                      Text(data[index].Email,style: TextStyle(fontSize: 18),):Text('no datas')
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 10),
-                                    child: Text('Phone number :  ',style: TextStyle(color: Colors.black45),),
-                                  ),
-                                  Container(
-                                      padding: EdgeInsets.only(right: 150),
-                                      margin: EdgeInsets.only(bottom: 15,),
-                                      child: (data[index].Phonenumber.isNotEmpty)?Text(data[index].Phonenumber,style: TextStyle(fontSize: 18),):Text('no data')
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 10),
-                                    child: Text('Company name :  ',style: TextStyle(color: Colors.black45),),
-                                  ),
-                                  Container(
-                                      padding: EdgeInsets.only(right: 150),
-                                      margin: EdgeInsets.only(bottom: 15),
-                                      child:(data[index].Companyname.isNotEmpty)? Text(data[index].Companyname,style: TextStyle(fontSize: 18),):Text('no data')
-                                  ),
-                                ],
-                              ),
-
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 5,),
-                                    child: Text('Client name :  ',style: TextStyle(color: Colors.black45),),
-                                  ),
-                                  Container(
-                                      padding: EdgeInsets.only(right: 150),
-                                      margin: EdgeInsets.only(bottom: 15),
-                                      child: (data[index].Clientname.isNotEmpty)?Text(data[index].Clientname,style: TextStyle(fontSize: 18),):Text('no data')
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 10),
-                                    child: Text('Password :  ',style: TextStyle(color: Colors.black45),),
-                                  ),
-                                  Container(
-                                      padding: EdgeInsets.only(right: 150),
-                                      child: (data[index].Password.isNotEmpty)?Text(data[index].Password,style: TextStyle(fontSize: 18),):Text('no data')
-                                  ),
-                                ],
-                              ),
+                              Icon(Icons.forward ,color: Colors.white,),
+                              Text(' Change Password',style: TextStyle(
+                                color: Colors.white
+                              ),)
                             ],
                           ),
-                        ),
                       ),
-                      Positioned(
-                          top:530,
-                          left: 170,
-                          child: Container(
-                            width: 160,height: 50,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.white
-                            ),
-                            child: GestureDetector(
-                              onTap: (){
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (context)=>ChangePassword()
-                                ));
-                              },
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children:[
-                                    Icon(Icons.lock_outlined),
-                                    Text('Change password'),
-                                  ]
-                              ),
-                            ),
-                          )
-                      )
-
-                    ],
-                  )
-                ],
-              );
-            }
-        ),
+                    )
+                  ],
+                ),
+              ),
+            )
+          ],
+        ):Container()
       ),
     );
   }

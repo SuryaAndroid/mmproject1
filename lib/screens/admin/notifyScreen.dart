@@ -317,7 +317,7 @@ class _NotifScreenState extends State<NotifScreen> {
               iconSize: 30,
               splashColor: Colors.purpleAccent,
             ),
-            backgroundColor: Color(0Xff146bf7),
+            backgroundColor: Colors.blueAccent,
             title: counts==0?
             Text('Notifications'):
             Text('$counts New notifications'),
@@ -391,13 +391,10 @@ class _NotifScreenState extends State<NotifScreen> {
                                       ,),
                                     // subtitle: Text(snapshot.data![index].email,style:
                                     // TextStyle(color: Colors.red,fontSize: 13)),
-                                    trailing: CircleAvatar(
-                                      backgroundColor: Colors.blue,
-                                      child: Text(ticketDetails[index].ticketsId.toString()
+                                    trailing:Text(ticketDetails[index].ticketsId.toString()
                                           ,style:
-                                          TextStyle(fontWeight: bold,fontSize: 12,color: Colors.white)
+                                          TextStyle(fontWeight:color[index]==true?normal:bold,fontSize: 12,color: Colors.black)
                                       ),
-                                    ),
                                   ),
                                   Divider(
                                     height: 2,

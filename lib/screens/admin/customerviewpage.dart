@@ -640,7 +640,14 @@ class _ViewPageState extends State<ViewPage> {
                   child: Container(
                     child: CircleAvatar(
                         radius: 45,
-                        backgroundImage: NetworkImage(this.Logo)
+                        child: Text(
+                          Clientname[0].toUpperCase(),
+                          style: TextStyle(
+                              fontSize: 40,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white
+                          ),
+                        ),
                     ),
                   ),
                 ), ),
