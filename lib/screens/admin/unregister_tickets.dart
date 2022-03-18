@@ -148,6 +148,19 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
   }
 
   Future<void> ticketsDataToView(int index) async {
+    print(unRegTickets[index].password);
+    print(unRegTickets[index].registerId);
+    print(unRegTickets[index].companyname);
+    print(unRegTickets[index].createdOn);
+    print(unRegTickets[index].clientname);
+    print(unRegTickets[index].email);
+    print(unRegTickets[index].phonenumber);
+    print(unRegTickets[index].domainName);
+    print(unRegTickets[index].description);
+    print(unRegTickets[index].status);
+    print(unRegTickets[index].createdOn);
+    print(unRegTickets[index].admUpdatedOn);
+    print(unRegTickets[index].admUpdatedBy);
     var pref = await SharedPreferences.getInstance();
     pref.remove('registerId');
     pref.remove('cmpname');
@@ -168,7 +181,6 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
     pref.setString('cmpyname',unRegTickets[index].companyname??'');
     pref.setString('cliname',unRegTickets[index].clientname??'');
     pref.setString('pass',unRegTickets[index].password??'');
-    pref.setString('logo',unRegTickets[index].logo??'');
     pref.setString('unreg_email',unRegTickets[index].email??'');
     pref.setString('phonenumber',unRegTickets[index].phonenumber??'');
     pref.setString('domainname',unRegTickets[index].domainName??'');
@@ -206,7 +218,7 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
           splashColor: Colors.purpleAccent,
         ),
         title: Text('Un Reg Tickets'),
-        backgroundColor:Colors.blueAccent,
+        backgroundColor: Color(0Xff146bf7),
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -250,13 +262,16 @@ class _UnRegister_TicketsState extends State<UnRegister_Tickets> {
                                     ticketsDataToView(index);
                                   },
                                   leading: CircleAvatar(
-                                    radius:25,
-                                    child: Text(unRegTickets[index].companyname[0].toUpperCase(),
-                                    style: TextStyle(fontSize: 20,color: Colors.white,fontWeight: FontWeight.w600),
+                                    backgroundColor:
+                                    Colors.blue,
+                                    radius: 27,
+                                    child: Text(
+                                      unRegTickets[index].companyname[0].toUpperCase(),
+                                      style: TextStyle(fontSize:22,fontWeight: FontWeight.bold,color: Colors.white),
                                     ),
                                   ),
                                   title: Text(unRegTickets[index].companyname.isNotEmpty?unRegTickets[index].companyname[0].toUpperCase()+unRegTickets[index].companyname.substring(1):'unnamed',
-                                    style: TextStyle(),),
+                                    style: TextStyle(fontSize: 17.5),),
                                   subtitle: Text(unRegTickets[index].createdOn.isNotEmpty?unRegTickets[index].createdOn:'value not found'),
                                   trailing: IconButton(
                                     onPressed: () {
@@ -294,7 +309,6 @@ class GetUnreg {
   String companyname='';
   String clientname='';
   String password='';
-  String logo='';
   String email='';
   String phonenumber='';
   String domainName='';
@@ -309,7 +323,6 @@ class GetUnreg {
         required this.companyname,
         required this.clientname,
         required this.password,
-        required this.logo,
         required this.email,
         required this.phonenumber,
         required this.domainName,
@@ -324,7 +337,6 @@ class GetUnreg {
     companyname = json['Companyname'];
     clientname = json['Clientname'];
     password = json['Password'];
-    logo = json['Logo'];
     email = json['Email'];
     phonenumber = json['Phonenumber'];
     domainName = json['DomainName'];
@@ -341,7 +353,6 @@ class GetUnreg {
     data['Companyname'] = this.companyname;
     data['Clientname'] = this.clientname;
     data['Password'] = this.password;
-    data['Logo'] = this.logo;
     data['Email'] = this.email;
     data['Phonenumber'] = this.phonenumber;
     data['DomainName'] = this.domainName;

@@ -47,20 +47,20 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
   Future <void> getData() async{
     var pref = await SharedPreferences.getInstance();
     setState(() {
-      registerId= pref.getString('registerId')!;
-      cmpyname= pref.getString('cmpyname')!;
-      cliname= pref.getString('cliname')!;
-      UserName=pref.getString('UserName')!;
-      pass =pref.getString('pass')!;
-      logo= pref.getString('logo')!;
-      emailid=pref.getString('unreg_email')!;
-      phonenumber=pref.getString('phonenumber')!;
-      domainname=pref.getString('domainname')!;
-      description=pref.getString('description')!;
-      createdon=pref.getString('createdon')!;
-      status=pref.getString('status')!;
-      adm_updatedon=pref.getString('adm_updatedon')!;
-      adm_updatedby=pref.getString('adm_updatedby')!;
+      registerId= pref.getString('registerId')??'';
+      cmpyname= pref.getString('cmpyname')??'';
+      cliname= pref.getString('cliname')??'';
+      UserName=pref.getString('UserName')??'';
+      pass =pref.getString('pass')??'';
+      logo= pref.getString('logo')??'';
+      emailid=pref.getString('unreg_email')??'';
+      phonenumber=pref.getString('phonenumber')??'';
+      domainname=pref.getString('domainname')??'';
+      description=pref.getString('description')??'';
+      createdon=pref.getString('createdon')??'';
+      status=pref.getString('status')??'';
+      adm_updatedon=pref.getString('adm_updatedon')??'';
+      adm_updatedby=pref.getString('adm_updatedby')??'';
 
     });
   }
@@ -110,37 +110,33 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
                 content: Text('Customer details will be Approved',
                   style: TextStyle(fontSize: 17),),
                 actions: [
-                  Row(
-                    children: [
-                      FlatButton(onPressed: (){
-                        Navigator.of(context,rootNavigator: true).pop();
-                        print('window closed');
-                        Navigator.of(context).pop();
+                  FlatButton(onPressed: (){
+                    Navigator.of(context,rootNavigator: true).pop();
+                    print('window closed');
+                    Navigator.of(context).pop();
 
-                      }, child: Text('Cancel',
-                          style: TextStyle(fontSize: 13,color: Colors.blue))),
-                      FlatButton(onPressed: (){
-                        setState(() {
-                          ApproveTicket(registerId,status='Reject',context);
-                        });
-                        print('$status');
-                        Navigator.of(context).pop();
+                  }, child: Text('Cancel',
+                      style: TextStyle(fontSize: 14,color: Colors.blueAccent))),
 
-                      }, child: Text('Reject',
-                          style: TextStyle(fontSize: 13,color: Colors.blue))),
-                      FlatButton(onPressed: (){
-                        setState(() {
-                          ApproveTicket(registerId,status='Approved',context);
-                        });
-                        print('$status');
-                        Navigator.of(context).pop();
+                  FlatButton(onPressed: (){
+                    setState(() {
+                      ApproveTicket(registerId,status='Reject');
+                    });
+                    print('$status');
+                    Navigator.of(context).pop();
 
-                      }, child: Text('Approve',
-                          style: TextStyle(fontSize: 13,color: Colors.blue))),
+                  }, child: Text('Reject',
+                      style: TextStyle(fontSize: 14,color: Colors.red))),
 
-                    ],
-                  )
+                  FlatButton(onPressed: (){
+                    setState(() {
+                      ApproveTicket(registerId,status='Approved');
+                    });
+                    print('$status');
+                    Navigator.of(context).pop();
 
+                  }, child: Text('Approve',
+                      style: TextStyle(fontSize: 14,color: Colors.green))),
                 ],
               )
           );
@@ -160,7 +156,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
       'Phonenumber': phonenumber,
       'DomainName': domainname,
       'Description': description,
-      'Cus_CreatedOn':'null',
+      'Cus_CreatedOn':createdon,
     });
     http.StreamedResponse response = await request.send();
     String res = await response.stream.bytesToString();
@@ -249,8 +245,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
   }
 
 
-
-  Future<void> ApproveTicket(String usersId,String Status,BuildContext context) async {
+  Future<void> ApproveTicket(String usersId,String Status) async {
     try {
       print(usersId);
       var headers = {
@@ -267,15 +262,15 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
         String s = await response.stream.bytesToString();
         print(status);
         if("$status"== 'Reject'){
-          setState(() {
-            rejectStatusMail();
-          });
+          // setState(() {
+          //   rejectStatusMail();
+          // });
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Row(
                   children: [
                     Icon(Icons.close,color: Colors.white,),
-                    Text('Reject Successfully'),
+                    Text(' Ticket Rejected!'),
                   ],
                 ),
                 backgroundColor:red,
@@ -287,7 +282,18 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
             AddUnRegUser();
             AddUnRegTicket();
           });
-          Fluttertoast.showToast(msg: 'Approved successfully');
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.done,color: Colors.white,),
+                    Text(' Ticket Approved!'),
+                  ],
+                ),
+                backgroundColor:green,
+                behavior: SnackBarBehavior.floating,
+              )
+          );
           Navigator.pop(context);
         }
       }
@@ -298,7 +304,7 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
             content: Row(
               children: [
                 Icon(Icons.announcement_rounded,color: Colors.white,),
-                Text('Something went wrong'),
+                Text(' Something went wrong!'),
               ],
             ),
             backgroundColor: red,
@@ -311,28 +317,35 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
 
   //send approve mail
   void approveStatusMail() async {
-    String username = 'durgadevi@mindmade.in';
-    String password = 'Appu#001';
-
-    final smtpServer = gmail(username, password);
+    String splited = emailid.split("@").first;
+    SmtpServer smtpServer = SmtpServer('mindmadetech.in')
+      ..username = "_mainaccount@mindmadetech.in"
+      ..password = "1boQ[(6nYw6H.&_hQ&";
     final equivalentMessage = Message()
-      ..from = Address(username, 'DurgaDevi')
+      ..from = Address("support@mindmade.in")
       ..recipients.add(Address(emailid))
-      ..ccRecipients.addAll([Address('surya@mindmade.in'),'durgavenkatesh805@gmail.com'])
-    // ..bccRecipients.add('bccAddress@example.com')
-      ..subject = 'Your Ticket status (${formatter.format(DateTime.now())})'
-      ..text = ("Dear Sir/Madam,\n\n"
-          "Greetings from MindMade Customer Support Team!!!\n"
-          "You have been registered as Client on MindMade Customer Support.\n\n"
-          "To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:\n\n"
-          "Email : $emailid\n"
-          "Password : $pass\n\n"
-          "You can change your password once you logged in.\n\n"
-          "Thanks & Regards,\n"
-          "Mindmade."
+      // ..ccRecipients.addAll([Address('surya@mindmade.in'),'durgavenkatesh805@gmail.com'])
+      // ..bccRecipients.add('bccAddress@example.com')
+      ..subject = 'Mindmade Support'
+      // ..text = ("Dear Sir/Madam,\n\n"
+      //     "Greetings from MindMade Customer Support Team!!!\n"
+      //     "You have been registered as Client on MindMade Customer Support.\n\n"
+      //     "To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:\n\n"
+      //     "Email : $emailid\n"
+      //     "Password : $pass\n\n"
+      //     "You can change your password once you logged in.\n\n"
+      //     "Thanks & Regards,\n"
+      //     "Mindmade."
+     ..html = "<h3>Dear ${splited},</h3><br><br>"
+         "Greetings from MindMade Customer Support Team!!!<br><br>"
+         "You have been registered as Client on MindMade Customer Support.<br>"
+         "To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:<br><br>"
+         "Email : $emailid<br>"
+         "Password : $pass<br><br>"
+         "You can change your password once you logged in.<br><br>"
+         "<h2>Thanks & Regards</h2><br>"
+         "<h2>MindMade</h2>";
 
-      );
-    // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
     try {
       await send(equivalentMessage, smtpServer);
       print('Message sent: ' + send.toString());
@@ -347,7 +360,6 @@ class _UnRegTickets_ViewState extends State<UnRegTickets_View> {
     }
   }
   //
-
 
   //send reject  mail
   void rejectStatusMail() async {

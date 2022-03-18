@@ -249,22 +249,31 @@ class _LoginPageState extends State<LoginPage> {
                             margin: EdgeInsets.only(top: 30, bottom: 10),
                             child: ElevatedButton(
                               onPressed: () {
+                                FocusScope.of(context).unfocus();
                                 bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
                                     .hasMatch(mailController.text.toString());
                                 print(emailValid);
-                                if(emailValid!=true){
-                                  Fluttertoast.showToast(
-                                    msg: 'Enter a valid email id',
-                                    backgroundColor: Colors.red,
-                                  );
-                                }else if(mailController.text.toString() == ''||password.text.toString()==''){
-                                  FocusScope.of(context).unfocus();
+
+                                if(mailController.text.toString() == ''||password.text.toString()==''){
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Row(
                                           children: [
                                             Icon(Icons.close_outlined,color: Colors.white,),
                                             Text('  Fields cannot be empty!'),
+                                          ],
+                                        ),
+                                        backgroundColor: Color(0xffE33C3C),
+                                        behavior: SnackBarBehavior.floating,
+                                      )
+                                  );
+                                }else if(emailValid!=true){
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: [
+                                            Icon(Icons.mail_outline,color: Colors.white,),
+                                            Text('  Enter valid mail!'),
                                           ],
                                         ),
                                         backgroundColor: Color(0xffE33C3C),
@@ -305,10 +314,10 @@ class _LoginPageState extends State<LoginPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Un register user?'
+                              Text("Don't have an Account?"
                                 ,style: TextStyle(color: Colors.black,fontSize: 16),),
-                              TextButton(child: Text('Register'
-                                ,style: TextStyle(color: Colors.red,fontSize: 16,decoration: TextDecoration.underline),),
+                              TextButton(child: Text('Click here'
+                                ,style: TextStyle(color: Colors.red,fontSize: 14,decoration: TextDecoration.underline),),
                                 onPressed: () async{
                                   var pref = await SharedPreferences.getInstance();
                                   pref.setString('usertype', 'unreguser');

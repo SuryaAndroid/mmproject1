@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server/gmail.dart';
+import 'package:mailer/smtp_server.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -47,6 +47,156 @@ class _TeamListState extends State<TeamList> {
     });
   }
 
+
+  //delete tm
+  Future<void> deleteAlbum(String teamId) async {
+    showAlert(context);
+    try{
+      final  response = await http.put(
+          Uri.parse('https://mindmadetech.in/api/team/delete/$teamId'),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(<String, String>{
+            'Isdeleted': "y",
+          }
+          ));
+      if (response.statusCode == 200) {
+        if(response.body.contains("Is deleted : y")){
+          Navigator.pop(context);
+          setState(() {
+            refreshListener();
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.done_all,color: Colors.white,),
+                    Text(' Team Deleted!'),
+                  ],
+                ),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              )
+          );
+        }else{
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.wifi_outlined,color: Colors.white,),
+                    Text(' Unable to delete team!'),
+                  ],
+                ),
+                backgroundColor: Colors.red[300],
+                behavior: SnackBarBehavior.floating,
+              )
+          );
+        }
+      } else {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.wifi_outlined,color: Colors.white,),
+                  Text(' Something went wrong!'),
+                ],
+              ),
+              backgroundColor: Colors.red[300],
+              behavior: SnackBarBehavior.floating,
+            )
+        );
+      }
+    }catch(error){
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.wifi_outlined,color: Colors.white,),
+                Text(' Something went wrong!'),
+              ],
+            ),
+            backgroundColor: Colors.red[300],
+            behavior: SnackBarBehavior.floating,
+          )
+      );
+    }
+
+  }
+  //update tm
+  Future<void> updateTeam(String name, String Pass,String mobile, String tm,int index) async {
+    showAlert(context);
+    String teamId = searchList[index].teamId;
+    final response = await http.put(
+      Uri.parse('https://mindmadetech.in/api/team/update/$teamId'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        "Email" : name.toString(),
+        "Password" : Pass.toString(),
+        "Team" : tm.toString(),
+        "Phonenumber":mobile.toString(),
+        "ModifiedOn":formatter.format(DateTime.now()),
+        "ModifiedBy":createdBy,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      if(response.body.contains('Updated Successfully')){
+        Navigator.pop(context);
+        setState((){
+          searchList[index].email = name;
+          searchList[index].Password= Pass;
+          searchList[index].Team= tm;
+          searchList[index].phone= mobile;
+          refreshListener();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.done_all,color: Colors.white,),
+                  Text(' Edits saved!'),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            )
+        );
+      }else{
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.close_outlined,color: Colors.white,),
+                  Text(' Email already Exists!'),
+                ],
+              ),
+              backgroundColor: Colors.red[300],
+              behavior: SnackBarBehavior.floating,
+            )
+        );
+      }
+    } else {
+      Navigator.pop(context);
+      Fluttertoast.showToast(
+          msg: 'Failed to Update Team!',
+          toastLength: Toast.LENGTH_LONG,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 15.0
+      );
+      throw Exception('Failed to update album.');
+    }
+  }
+
   Future<void> fetchTeam() async {
     showAlert(context);
     try {
@@ -55,7 +205,6 @@ class _TeamListState extends State<TeamList> {
       if (response.statusCode == 200) {
         Navigator.pop(context);
         List body = jsonDecode(response.body);
-        //print("body,....."+body.toString());
         setState(() {
           retryVisible = false;
           teamList = body.map((e) => GetTeam.fromJson(e)).toList();
@@ -131,6 +280,7 @@ class _TeamListState extends State<TeamList> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         TextFormField(
+                          enabled: false,
                           decoration: const InputDecoration(
                             hintText: 'Enter Mail id',
                             labelText: 'Mail',
@@ -174,7 +324,7 @@ class _TeamListState extends State<TeamList> {
                 ),
                 actions: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context, 'Cancel'),
+                    onPressed: () => Navigator.pop(context),
                     child: Text(
                       'Cancel',
                       style: TextStyle(fontSize: 16),
@@ -194,7 +344,7 @@ class _TeamListState extends State<TeamList> {
                           msg: 'Enter a valid email id',
                           backgroundColor: Colors.red,
                         );
-                      }if(emailController.text.isEmpty||PassController.text.isEmpty||phoneCtrl.text.isEmpty){
+                      }else if(emailController.text.isEmpty||PassController.text.isEmpty||phoneCtrl.text.isEmpty){
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -318,7 +468,6 @@ class _TeamListState extends State<TeamList> {
                           controller: mailController,
                         ),
                         TextFormField(
-                          //   maxLength: 6,
                           decoration: const InputDecoration(
                             hintText: 'Password here',
                             labelText: 'Password',
@@ -380,7 +529,12 @@ class _TeamListState extends State<TeamList> {
                         bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
                             .hasMatch(emailId.toString());
                         print(emailValid);
-                        if(emailValid!=true){
+                        if(emailId.isEmpty||Password.isEmpty||phoneCtrlnew.text.isEmpty||phoneCtrlnew.text.length<10){
+                          Fluttertoast.showToast(
+                            msg: 'Fields not be empty!',
+                            backgroundColor: Colors.red,
+                          );
+                        }else if(emailValid!=true){
                           Fluttertoast.showToast(
                             msg: 'Enter a valid email id',
                             backgroundColor: Colors.red,
@@ -390,12 +544,7 @@ class _TeamListState extends State<TeamList> {
                             msg: 'Password must be 6 digits',
                             backgroundColor: Colors.red,
                           );
-                        }else if(emailId.isEmpty||Password.isEmpty||phoneCtrlnew.text.isEmpty||phoneCtrlnew.text.length<10){
-                          Fluttertoast.showToast(
-                            msg: 'Fields not be empty!',
-                            backgroundColor: Colors.red,
-                          );
-                        }else{
+                        }else {
                           Addteam(
                             emailId,
                             Password,
@@ -413,31 +562,32 @@ class _TeamListState extends State<TeamList> {
   }
 
   void sendmailTm(String mail, String pass) async{
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sending mail...'),
+        )
+    );
+    String splitName = mailController.text.toString().split('@').first;
     try {
-      setState(() {
-        mailController.text.toString();
-        PassController.text.toString();
-      });
-      print(mailController);
-      print(PassController);
-      String username = 'durgadevi@mindmade.in';
-      String password = 'Appu#001';
-      final smtpServer = gmail(username, password);
+      SmtpServer smtpServer = SmtpServer('mindmadetech.in')
+        ..username = "_mainaccount@mindmadetech.in"
+        ..password = "1boQ[(6nYw6H.&_hQ&";
+
       final equivalentMessage = Message()
-        ..from = Address(username, 'DurgaDevi')
+        ..from = Address("support@mindmade.in")
         ..recipients.add(Address(mailController.text.toString()))
-        ..ccRecipients.addAll([Address('surya@mindmade.in'),])
+      // ..ccRecipients.addAll([Address('surya@mindmade.in'), 'durgavenkatesh805@gmail.com'])
       // ..bccRecipients.add('bccAddress@example.com')
-        ..subject = 'Your Credentials ${formatter.format(DateTime.now())}'
-        ..text = 'Dear Sir/Madam,\n\n'
-            'Greetings from MindMade Customer Support Team!!! \n'
-            'You have been registered as Team member on MindMade Customer Support.\n'
-            'To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:\n\n'
-            'Email : ${mail}\n'
-            'Password : ${pass}\n\n'
-            'You can change your password once you logged in.\n\n'
-            'Thanks & Regards, \nMindMade';
-      // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
+        ..subject = 'Mindmade Support'
+        ..html= "<h3> Dear ${splitName}</h3>"
+            "<p>Greetings from MindMade Customer Support Team!!!</p>"
+            "<p>You have been registered as Team member on MindMade Customer Support.</p>"
+            "<p>To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:</p>"
+            "<p>Email :<b>${mail}</b></p>""<p>Password  :<b>${pass}</b></p>"
+            "<p>You can change your password once you logged in.</p>"
+            "<b>Thanks & Regards,</b><br>"
+            "<b>MindMade</b>";
+
       await send(equivalentMessage, smtpServer);
       print('Message sent: ' + send.toString());
       ScaffoldMessenger.of(context).showSnackBar(
@@ -575,7 +725,7 @@ class _TeamListState extends State<TeamList> {
             splashColor: Colors.purpleAccent,
           ),
           centerTitle: true,
-          backgroundColor: Colors.blueAccent,
+          backgroundColor: Color(0Xff146bf7),
           title: Text("Team"),
           actions: [
             PopupMenuButton(
@@ -1032,155 +1182,6 @@ class _TeamListState extends State<TeamList> {
         ]),
       ),
     );
-  }
-
-  //delete tm
-  Future<void> deleteAlbum(String teamId) async {
-    showAlert(context);
-    try{
-      final  response = await http.put(
-          Uri.parse('https://mindmadetech.in/api/team/delete/$teamId'),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(<String, String>{
-            'Isdeleted': "y",
-          }
-          ));
-      if (response.statusCode == 200) {
-        if(response.body.contains("Is deleted : y")){
-          Navigator.pop(context);
-          setState(() {
-            refreshListener();
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.done_all,color: Colors.white,),
-                    Text(' Team Deleted!'),
-                  ],
-                ),
-                backgroundColor: Colors.green,
-                behavior: SnackBarBehavior.floating,
-              )
-          );
-        }else{
-          Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.wifi_outlined,color: Colors.white,),
-                    Text(' Unable to delete team!'),
-                  ],
-                ),
-                backgroundColor: Colors.red[300],
-                behavior: SnackBarBehavior.floating,
-              )
-          );
-        }
-      } else {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.wifi_outlined,color: Colors.white,),
-                  Text(' Something went wrong!'),
-                ],
-              ),
-              backgroundColor: Colors.red[300],
-              behavior: SnackBarBehavior.floating,
-            )
-        );
-      }
-    }catch(error){
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.wifi_outlined,color: Colors.white,),
-                Text(' Something went wrong!'),
-              ],
-            ),
-            backgroundColor: Colors.red[300],
-            behavior: SnackBarBehavior.floating,
-          )
-      );
-    }
-
-  }
-  //update tm
-  Future<void> updateTeam(String name, String Pass,String mobile, String tm,int index) async {
-    showAlert(context);
-    String teamId = searchList[index].teamId;
-    final response = await http.put(
-      Uri.parse('https://mindmadetech.in/api/team/update/$teamId'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        "Email" : name.toString(),
-        "Password" : Pass.toString(),
-        "Team" : tm.toString(),
-        "Phonenumber":mobile.toString(),
-        "ModifiedOn":formatter.format(DateTime.now()),
-        "ModifiedBy":createdBy,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      if(response.body.contains('Updated Successfully')){
-        Navigator.pop(context);
-        setState((){
-          searchList[index].email = name;
-          searchList[index].Password= Pass;
-          searchList[index].Team= tm;
-          searchList[index].phone= mobile;
-          refreshListener();
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.done_all,color: Colors.white,),
-                  Text(' Edits saved!'),
-                ],
-              ),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-            )
-        );
-      }else{
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.close_outlined,color: Colors.white,),
-                  Text(' Failed to save edits!'),
-                ],
-              ),
-              backgroundColor: Colors.red[300],
-              behavior: SnackBarBehavior.floating,
-            )
-        );
-      }
-    } else {
-      Navigator.pop(context);
-      Fluttertoast.showToast(
-          msg: 'Failed to Update Team!',
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 15.0
-      );
-      throw Exception('Failed to update album.');
-    }
   }
 }
 

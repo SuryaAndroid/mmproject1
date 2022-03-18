@@ -60,7 +60,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                   content: Row(
                     children: [
                       Icon(Icons.close_rounded,color: Colors.white,),
-                      Text(' Password change failed')
+                      Text('  Enter new password!')
                     ],
                   )
               )

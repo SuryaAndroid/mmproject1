@@ -23,7 +23,6 @@ class _ViewPageState extends State<ViewPage> {
   String address='';
   String Companyname='';
   String email='';
-  String Logo='';
   String Clientname='';
   String Createdon='';
   String Createdby='';
@@ -37,10 +36,7 @@ class _ViewPageState extends State<ViewPage> {
 
 
   var controller = TextEditingController();
-  var _image = new File("");
-  String extention="*";
   String networkImg = "";
-  String imgPath = "";
   String createdBy = '';
   String datetmFor = DateTime.now().toString();
   DateFormat formatter = DateFormat('dd-MM-yyyy hh:mm a');
@@ -126,6 +122,7 @@ class _ViewPageState extends State<ViewPage> {
   //Function for delete user
   Future<void> deleteCustomer(String usersId,BuildContext context) async {
     print(usersId);
+    showAlert(context);
     try{
       var headers = {
         'Content-Type': 'application/json'
@@ -142,12 +139,13 @@ class _ViewPageState extends State<ViewPage> {
         String s = await response.stream.bytesToString();
         if(s.contains("Is deleted : y")){
           Navigator.of(context,rootNavigator: true).pop();
+          Navigator.of(context,rootNavigator: true).pop();
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Row(
                   children: [
                     Icon(Icons.done_all,color: Colors.white,),
-                    Text('Customer deleted successfully!'),
+                    Text(' Customer deleted successfully!'),
                   ],
                 ),
                 backgroundColor: green,
@@ -162,7 +160,7 @@ class _ViewPageState extends State<ViewPage> {
                 content: Row(
                   children: [
                     Icon(Icons.announcement_outlined,color: Colors.white,),
-                    Text('Failed to remove!'),
+                    Text(' Failed to remove!'),
                   ],
                 ),
                 backgroundColor: red,
@@ -257,7 +255,6 @@ class _ViewPageState extends State<ViewPage> {
       phonenumber = pref.getString('phno').toString();
       address = pref.getString('address').toString();
       Companyname = pref.getString('Cname').toString();
-      Logo = pref.getString('Logo').toString();
       Clientname = pref.getString('Clientname').toString();
       Createdon= pref.getString('Createdon').toString();
       Createdby = pref.getString('Createdby').toString();
@@ -272,37 +269,18 @@ class _ViewPageState extends State<ViewPage> {
     showAlert(context);
     try{
       var request = http.MultipartRequest('PUT', Uri.parse('https://mindmadetech.in/api/customer/update/$usersId'));
-      if(_image.path==""){
-        request.fields.addAll({
-          'Logo': Logo,
-          'Companyname':cmp,
-          'Clientname':client,
-          'Password':pass,
-          'Email': mailid,
-          'Phonenumber': phone,
-          'Createdon': Createdon,
-          'Createdby': Createdby,
-          'Modifiedon': formatter.format(DateTime.now()),
-          'Modifiedby': createdBy
-        });
-      }else{
-        request.files.add(
-            await http.MultipartFile.fromPath('file', _image.path,filename:basename(_image.path) ,
-                contentType: MediaType.parse("image/$extention")
-            )
-        );
-        request.fields.addAll({
-          'Companyname':cmp,
-          'Clientname':client,
-          'Password':pass,
-          'Email': mailid,
-          'Phonenumber': phone,
-          'Createdon': Createdon,
-          'Createdby': Createdby,
-          'Modifiedon': formatter.format(DateTime.now()),
-          'Modifiedby': createdBy
-        });
-      }
+      request.headers['Content-Type'] = 'multipart/form-data';
+      request.fields.addAll({
+        'Companyname':cmp,
+        'Clientname':client,
+        'Password':pass,
+        'Email': mailid,
+        'Phonenumber': phone,
+        'Createdon': Createdon,
+        'Createdby': Createdby,
+        'ModifiedOn': formatter.format(DateTime.now()),
+        'ModifiedBy': createdBy
+      });
 
       http.StreamedResponse response = await request.send();
 
@@ -330,16 +308,13 @@ class _ViewPageState extends State<ViewPage> {
             address= address;
             Companyname= cmp;
             email= mailid;
-            Logo= Logo;
             Clientname= client;
             Createdon= Createdon;
             Createdby= Createdby;
             Modifiedon= formatter.format(DateTime.now());
             Modifiedby= createdBy;
-            _image == File("");
           });
         }else{
-          _image == File("");
           Navigator.of(context,rootNavigator: true).pop();
           Navigator.of(context,rootNavigator: true).pop();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -397,35 +372,6 @@ class _ViewPageState extends State<ViewPage> {
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Center(
-                      child: GestureDetector(
-                        onTap: () async {
-                          //_FilePicker();
-                          FilePickerResult? result = await FilePicker.platform
-                              .pickFiles(
-                            type: FileType.image,
-                          );
-                          PlatformFile file = result.files.first;
-                          if (result != null) {
-                            setState(() {
-                              _image = new File(file.path);
-                              imgPath = file.path.toString();
-                            });
-                            extention = file.extension;
-                            print("this is image : " +
-                                _image.absolute.path.toString());
-                          }
-                        },
-                        child: imgPath == "" ? CircleAvatar(
-                          backgroundImage: NetworkImage(Logo),
-                          radius: 45,
-                        ) : CircleAvatar(
-                          backgroundImage: FileImage(File('$imgPath')),
-                          radius: 45,
-                        ),
-                      ),
-                    ),
-
                     TextFormField(
                       decoration: const InputDecoration(
                         hintText: 'Enter your Company name',
@@ -535,21 +481,17 @@ class _ViewPageState extends State<ViewPage> {
 //
 
   @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    imgPath = '';
-    print('diposed the activity....');
-  }
-  @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    getPref();
-    getdata();
-    setState((){
-      dateTime = formatter.format(DateTime.now());
+    Future.delayed(Duration.zero,() async{
+      setState((){
+        getPref();
+        getdata();
+        dateTime = formatter.format(DateTime.now());
+      });
     });
+
   }
 
   @override
@@ -639,15 +581,15 @@ class _ViewPageState extends State<ViewPage> {
                   ),
                   child: Container(
                     child: CircleAvatar(
-                        radius: 45,
-                        child: Text(
-                          Clientname[0].toUpperCase(),
-                          style: TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white
-                          ),
+                      radius: 45,
+                      child: Text(
+                        Clientname[0].toUpperCase(),
+                        style: TextStyle(
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white
                         ),
+                      ),
                     ),
                   ),
                 ), ),

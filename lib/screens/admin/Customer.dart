@@ -27,9 +27,7 @@ class _CustomerState extends State<Customer> {
   Color red = Color(0xffE33C3C);
 
   //Strings
-  String extention = "*";
   String searchText = "";
-  String imgPath = "";
   String createdBy = '';
   bool clearSearch = false;
   DateFormat formatter = DateFormat('dd-MM-yyyy hh:mm a');
@@ -39,7 +37,6 @@ class _CustomerState extends State<Customer> {
       mailId = new TextEditingController(),
       phnNum = new TextEditingController(),clientNm = new TextEditingController();
   //List and File
-  File _image = new File("");
   List<GetCustomer> data = [];
   //true false
   bool refresh = false;
@@ -60,41 +57,6 @@ class _CustomerState extends State<Customer> {
                 content: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children:<Widget> [
-                        GestureDetector(
-                            onTap: () async {
-                              print("image path" + imgPath);
-                              print("Entering to file picker........");
-                              FilePickerResult? result =
-                              await FilePicker.platform.pickFiles(
-                                type: FileType.image,
-                              );
-                              PlatformFile file = result.files.first;
-                              if (result != "") {
-                                setState(() {
-                                  imgPath = file.path.toString();
-                                });
-                                _image = new File(imgPath);
-                                extention = file.extension;
-                                print("this is image : " +
-                                    _image.absolute.path.toString());
-                              }
-                            },
-                            child: imgPath == ""
-                                ? CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Colors.white,
-                              backgroundImage:
-                              AssetImage('assets/images/user.png'),
-                            ) : CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Colors.white,
-                              backgroundImage: FileImage(File('$imgPath')),
-                            )),
-                      ],
-                    ),
                     TextField(
                       decoration: const InputDecoration(
                         hintText: 'Email here',
@@ -152,32 +114,32 @@ class _CustomerState extends State<Customer> {
                                   bool emailValid = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
                                       .hasMatch(mailId.text.toString());
                                   print(emailValid);
-                                  if(emailValid!=true){
-                                    Fluttertoast.showToast(
-                                      msg: 'Enter a valid email id',
-                                      backgroundColor: Colors.red,
-                                    );
-                                  }else if (compName.text.isEmpty ||
+                                  if (compName.text.isEmpty ||
                                       passWd.text.isEmpty ||
                                       mailId.text.isEmpty ||
                                       phnNum.text.length < 10 ||
-                                      clientNm.text.isEmpty||_image.path.isEmpty) {
-                                      Fluttertoast.showToast(
+                                      clientNm.text.isEmpty) {
+                                    Fluttertoast.showToast(
                                         msg: "Please fill all the details/Select profile image.",
                                         toastLength: Toast.LENGTH_LONG,
                                         timeInSecForIosWeb: 1,
                                         backgroundColor: Colors.red,
                                         textColor: Colors.white,
                                         fontSize: 18.0
-                                     );
-                                  } else {
+                                    );
+                                  } else if(emailValid!=true){
+                                    Fluttertoast.showToast(
+                                      msg: 'Enter a valid email id',
+                                      backgroundColor: Colors.red,
+                                    );
+                                  }else  {
                                     Navigator.pop(context);
                                     AddNewUser(
-                                        compName.text.toString(),
-                                        passWd.text.toString(),
-                                        mailId.text.toString(),
-                                        phnNum.text.toString(),
-                                        clientNm.text.toString(),
+                                      compName.text.toString(),
+                                      passWd.text.toString(),
+                                      mailId.text.toString(),
+                                      phnNum.text.toString(),
+                                      clientNm.text.toString(),
                                     );
                                   }
                                 },
@@ -206,52 +168,62 @@ class _CustomerState extends State<Customer> {
 
 //send mail
   void sendMailToClient(String mail , String pass) async {
-    try {
-      setState(() {
-        mailId.text.toString();
-        passWd.text.toString();
-      });
-      print(mailId);
-      print(passWd);
-      String username = 'durgadevi@mindmade.in';
-      String password = 'Appu#001';
-      final smtpServer = gmail(username, password);
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sending mail...'),
+        )
+    );
+    String splitName = mailId.text.toString().split('@').first;
+
+    try{
+      SmtpServer smtpServer = SmtpServer('mindmadetech.in')
+        ..username = "_mainaccount@mindmadetech.in"
+        ..password = "1boQ[(6nYw6H.&_hQ&";
+
       final equivalentMessage = Message()
-        ..from = Address(username, 'DurgaDevi')
+        ..from = Address("support@mindmade.in")
         ..recipients.add(Address(mailId.text.toString()))
-        ..ccRecipients.addAll([Address('surya@mindmade.in'),])
+      // ..ccRecipients.addAll([Address('surya@mindmade.in'),'durgavenkatesh805@gmail.com'])
       // ..bccRecipients.add('bccAddress@example.com')
-        ..subject = 'Your Credentials ${formatter.format(DateTime.now())}'
-        ..text = 'Dear Sir/Madam,\n\n'
-            'Greetings from MindMade Customer Support Team!!! \n'
-            'You have been registered as Client on MindMade Customer Support.\n'
-            'To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:\n\n'
-            'Email : ${mail}\n'
-            'Password : ${pass}\n\n'
-            'You can change your password once you logged in.\n\n'
-            'Thanks & Regards, \nMindMade';
-      // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
-      await send(equivalentMessage, smtpServer);
-      print('Message sent: ' + send.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Customer Credentials send via mail'),
-            backgroundColor: Colors.lightGreen,
-            behavior: SnackBarBehavior.floating,
-          )
-      );
-    } on MailerException catch (e) {
-      print('Message not sent.');
-      for (var p in e.problems) {
-        print('Problem: ${p.code}: ${p.msg}');
+        ..subject = 'Mindmade Support'
+        ..html= "<h3> Dear ${splitName[0].toUpperCase()}</h3>"
+            "<p>Greetings from MindMade Customer Support Team!!!</p>"
+            "<p>You have been registered as Client on MindMade Customer Support.</p>"
+            "<p>To Login,go to https://mm-customer-support-ten.vercel.app/ then enter the following information:</p>"
+            "<p>Email :<b>${mail}</b></p>""<p>Password  :<b>${pass}</b></p>"
+            "<p>You can change your password once you logged in.</p>"
+            "<b>Thanks & Regards,</b><br>"
+            "<b>MindMade</b>";
+      try {
+        await send(equivalentMessage, smtpServer);
+        print('Message sent: ' + send.toString());
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to send credentials!'),
-              backgroundColor: Colors.red[200],
+              content: Text('Customer Credentials send via mail'),
+              backgroundColor: Colors.lightGreen,
               behavior: SnackBarBehavior.floating,
             )
         );
+      } on MailerException catch (e) {
+        print('Message not sent.');
+        for (var p in e.problems) {
+          print('Problem: ${p.code}: ${p.msg}');
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to send credentials!'),
+                backgroundColor: Colors.red[200],
+                behavior: SnackBarBehavior.floating,
+              )
+          );
+        }
       }
+    }catch(ex){
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Something went wrong!'),
+            backgroundColor: Colors.red,
+          )
+      );
     }
   }
 
@@ -282,8 +254,6 @@ class _CustomerState extends State<Customer> {
   //Add new customer logic
   Future AddNewUser(String comp,String pass, String mail, String phn, String client) async {
     showAlert();
-    // https://mindmadetech.in/public/images/file-1645099812344.png
-    print(_image);
     try {
       final request = http.MultipartRequest(
           'POST', Uri.parse('https://mindmadetech.in/api/customer/new'));
@@ -297,9 +267,6 @@ class _CustomerState extends State<Customer> {
         'CreatedOn': formatter.format(DateTime.now()),
         'CreatedBy': '$createdBy'
       });
-      request.files.add(await http.MultipartFile.fromPath('file', _image.path,
-          filename: Path.basename(_image.path),
-          contentType: MediaType.parse("image/$extention")));
 
       http.StreamedResponse response = await request.send();
       if (response.statusCode == 200) {
@@ -316,19 +283,19 @@ class _CustomerState extends State<Customer> {
         print(res);
         String s = '{"statusCode":400,"message":"Email already Exists!"}';
         if (res.contains(s)) {
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      Icon(Icons.close,color: Colors.white,),
-                      Text(' EmailId already Exists!'),
-                    ],
-                  ),
-                  backgroundColor:red,
-                  behavior: SnackBarBehavior.floating,
-                )
-            );
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.close,color: Colors.white,),
+                    Text(' EmailId already Exists!'),
+                  ],
+                ),
+                backgroundColor:red,
+                behavior: SnackBarBehavior.floating,
+              )
+          );
         } else {
           Navigator.pop(context);
           setState(() {
@@ -339,21 +306,20 @@ class _CustomerState extends State<Customer> {
             mailId = new TextEditingController(text: "");
             phnNum = new TextEditingController(text: "");
             clientNm = new TextEditingController(text: "");
-            _image=File('');
             fetchCustomer();
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.done_all,color: Colors.white,),
-                    Text(' Customer added successfully!'),
-                  ],
-                ),
-                backgroundColor: green,
-                behavior: SnackBarBehavior.floating,
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.done_all,color: Colors.white,),
+                  Text(' Customer added successfully!'),
+                ],
               ),
+              backgroundColor: green,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
         }
       } else {
@@ -509,7 +475,6 @@ class _CustomerState extends State<Customer> {
     pref.setString('phno',data[index].Phonenumber??'');
     pref.setString('address',data[index].Address??'');
     pref.setString('Cname',data[index].Companyname??'');
-    pref.setString('Logo',data[index].Logo??'');
     pref.setString('Clientname',data[index].Clientname??'');
     pref.setString('Createdon',data[index].Createdon??'');
     pref.setString('Createdby',data[index].Createdby??'');
@@ -528,12 +493,6 @@ class _CustomerState extends State<Customer> {
   }
   //endregion Functions
 
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    imgPath = "";
-  }
 
   @override
   void initState() {
@@ -675,9 +634,9 @@ class _CustomerState extends State<Customer> {
                                       child: Text(
                                         data[index].Companyname[0].toUpperCase(),
                                         style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white
                                         ),
                                       ),
                                     ),
@@ -730,7 +689,6 @@ class GetCustomer {
   String Phonenumber;
   String Address;
   String Companyname;
-  String Logo;
   String Clientname;
   String Createdon;
   String Createdby;
@@ -745,7 +703,6 @@ class GetCustomer {
         required this.Phonenumber,
         required this.Address,
         required this.Companyname,
-        required this.Logo,
         required this.Clientname,
         required this.Createdby,
         required this.Createdon,
@@ -761,7 +718,6 @@ class GetCustomer {
         Phonenumber: json['Phonenumber'].toString(),
         Address: json['Address'].toString(),
         Companyname: json['Companyname'].toString(),
-        Logo: json['Logo'].toString(),
         Clientname: json['Clientname'].toString(),
         Createdby: json['CreatedBy'].toString(),
         Createdon: json['CreatedOn'].toString(),
@@ -770,6 +726,8 @@ class GetCustomer {
         Isdeleted: json['Isdeleted'].toString());
   }
 }
+
+
 
 
 

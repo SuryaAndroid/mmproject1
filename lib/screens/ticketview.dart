@@ -9,12 +9,10 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
-import 'package:mmcustomerservice/screens/data.dart';
 import 'package:mmcustomerservice/ticketsModel.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_file/open_file.dart' as fileOpen;
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TicketViewPage extends StatefulWidget {
@@ -51,6 +49,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
       adm_updte_on = '',
       adm_update_by = '',
       adm_modify_on = '',
+      adm_created_on = '',
       adm_mod_by = "";
   String tm_startupdateon = "",
       tm_startupdateBy = "",
@@ -103,6 +102,10 @@ class _TicketViewPageState extends State<TicketViewPage> {
   List idList = [];
   var contextTeam = [];
   List userNames = [];
+  List teamsMailId = [];
+  List reAssignselect = [];
+  List<bool> reAssigncheck = [];
+  List reId = [];
   //endregion Variables
 
   //region Dialogs
@@ -292,87 +295,40 @@ class _TicketViewPageState extends State<TicketViewPage> {
         });
   }
 
-  Future<void> mailer() async{
-        // var mailOp = new SmtpServer("host")..password("")..username('');
-  }
-
   Future<void> sendCompleteMail() async {
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Sending mail...'),
+          backgroundColor: Colors.blueAccent,
         )
     );
+
+    String splitName = Email.split("@").first;
+    print(splitName);
     try{
-      String username = 'durgadevi@mindmade.in';
-      String password = 'Appu#001';
-      final smtpServer = gmail(username, password);
+      // final String username = '_mainaccount@mindmadetech.in';
+      // final String password = '1boQ[(6nYw6H.&_hQ&';
+      SmtpServer smtpServer = SmtpServer('mindmadetech.in')
+        ..username = "_mainaccount@mindmadetech.in"
+        ..password = "1boQ[(6nYw6H.&_hQ&";
 
       final equivalentMessage = Message()
-        ..from = Address(username, 'DurgaDevi')
-        ..recipients.add(Address('durgavenkatesh805@gmail.com'))
-        ..ccRecipients.addAll([
-          Address('surya@mindmade.in'),
-        ])
-      // ..bccRecipients.add('bccAddress@example.com')
-        ..subject = 'MindMade Support'
-        ..text = 'Dear Sir/Madam,\n\n'
-            'Greetings from MindMade Customer Support Team!!! \n\n'
-            "We're reaching out to you in regards to the ticket (#$ticketId) we completed for you.\n\n"
-            "Don't hesitate to contact us if you have questions or concerns.\n\n"
-            "Thanks & Regards,\nMindMade";
-      try {
-        await send(equivalentMessage, smtpServer);
-        print('Message sent: ' + send.toString());
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(' Mail Sent!'),
-              backgroundColor: Colors.green,
-            )
-        );
-      } on MailerException catch (e) {
-        print('Message not sent.');
-        for (var p in e.problems) {
-          print('Problem: ${p.code}: ${p.msg}');
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Something went wrong!'),
-                backgroundColor: Colors.red[200],
-              )
-          );
-        }
-      }
-    }catch(error){
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Something went wrong!'),
-            backgroundColor: Colors.red,
-          )
-      );
-    }
+        ..from = Address("support@mindmade.in")
+        ..recipients.add(Address('$Email'))
+        // ..ccRecipients.addAll([
+        //   Address('surya@mindmade.in'),
+        // ])
+        // ..bccRecipients.add('bccAddress@example.com')
+        ..subject = 'Mindmade Support'
+         // ..text = "Dear Sir/Madam,\n\nGreetings from MindMade Customer Support Team!!! \n\n"
+         //     "Ticket(${ticketId}) have been assigned to you.kindly check the ticket details in Mindmade Customer Support portal.\n\n"
+         //     "Thanks & Regards, \nMindmade\n"
+        ..html = "<h3>Dear ${splitName}</h3></br></br>"
+            "<p>Greetings from MindMade Customer Support Team!!! <br><br>"
+            "We're reaching out to you in regards to the ticket (#$ticketId) we completed for you.<br>"
+            "Don't hesitate to contact us if you have questions or concerns.<br><br>"
+            "<b>Thanks & Regards,<br>Mindmade</b></p>";
 
-  }
-
-  Future<void> sendAssignMail() async{
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Sending Mail To Team(s)....'),
-        )
-    );
-    try{
-      String username = 'durgadevi@mindmade.in';
-      String password = 'Appu#001';
-      final smtpServer = gmail(username, password);
-      final equivalentMessage = Message()
-        ..from = Address(username, 'DurgaDevi')
-        ..recipients.add(Address('durgavenkatesh805@gmail.com'))
-        ..ccRecipients.addAll([
-          Address('surya@mindmade.in'),
-        ])
-      // ..bccRecipients.add('bccAddress@example.com')
-        ..subject = 'Mindmade Ticket Assign (${formatter.format(DateTime.now())})'
-        ..text = "Dear Sir/Madam,\n\nGreetings from MindMade Customer Support Team!!! \n\n"
-            "Ticket(${ticketId}) have been assigned to you.kindly check the ticket details in Mindmade Customer Support portal.\n\n"
-            "Thanks & Regards, \nMindmade\n";
       try {
         await send(equivalentMessage, smtpServer);
         print('Message sent: ' + send.toString());
@@ -417,6 +373,92 @@ class _TicketViewPageState extends State<TicketViewPage> {
           )
       );
     }
+
+
+
+
+  }
+
+  Future<void> sendAssignMail() async{
+    print(teamsMailId);
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sending Mail To Team(s)....'),
+          backgroundColor: Colors.blueAccent,
+        )
+    );
+
+    String splitName = Email.split("@").first;
+    print(splitName);
+    try{
+      // final String username = '_mainaccount@mindmadetech.in';
+      // final String password = '1boQ[(6nYw6H.&_hQ&';
+      SmtpServer smtpServer = SmtpServer('mindmadetech.in')
+        ..username = "_mainaccount@mindmadetech.in"
+        ..password = "1boQ[(6nYw6H.&_hQ&";
+
+      final equivalentMessage = Message()
+        ..from = Address("support@mindmade.in")
+        ..recipients.addAll(teamsMailId)
+        // ..ccRecipients.addAll([
+        //   Address('surya@mindmade.in'),
+        // ])
+      // ..bccRecipients.add('bccAddress@example.com')
+        ..subject = 'Mindmade Support'
+      // ..text = "Dear Sir/Madam,\n\nGreetings from MindMade Customer Support Team!!! \n\n"
+      //     "Ticket(${ticketId}) have been assigned to you.kindly check the ticket details in Mindmade Customer Support portal.\n\n"
+      //     "Thanks & Regards, \nMindmade\n"
+        ..html = "<h3>Dear Sir/Madam</h3></br></br>"
+            "<p>Greetings from MindMade Customer Support Team!!! <br>"
+            "Ticket(${ticketId}) have been assigned to you.kindly check the ticket details in Mindmade Customer Support portal.<br><br>"
+            "<b>Thanks & Regards,<br>Mindmade</b></p>";
+
+      try {
+        await send(equivalentMessage, smtpServer);
+        print('Message sent: ' + send.toString());
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(
+                    Icons.mail_outline,
+                    color: Colors.white,
+                  ),
+                  Text('  Mail sent!'),
+                ],
+              ),
+              backgroundColor: Color(0xff198D0F),
+              behavior: SnackBarBehavior.floating,
+            ));
+      } on MailerException catch (e) {
+        print('Message not sent.');
+        for (var p in e.problems) {
+          print('Problem: ${p.code}: ${p.msg}');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  Icons.close_outlined,
+                  color: Colors.white,
+                ),
+                Text('  Mail send failed!'),
+              ],
+            ),
+            backgroundColor:Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ));
+        }
+      }
+    }catch(ex){
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Something went wrong!'),
+            backgroundColor: Colors.red,
+          )
+      );
+    }
+
+
   }
 
   void confirmDialogTeamRe(){
@@ -641,7 +683,8 @@ class _TicketViewPageState extends State<TicketViewPage> {
       var headers = {'Content-Type': 'application/json'};
       var request = http.Request('PUT',
           Uri.parse('https://mindmadetech.in/api/tickets/status/update'));
-      request.body = json.encode({
+      request.body = json.encode(
+          {
         "Status": val.toLowerCase(),
         "ticketsId": ticketId,
         "tickets_assignId": tmAssignList[0].ticketsAssignId,
@@ -725,6 +768,49 @@ class _TicketViewPageState extends State<TicketViewPage> {
     print(userType);
   }
 
+  Future<void> reAssignTrigger() async{
+    showAlert(context, " Please wait...");
+    print(ids);
+    try{
+      http.Response res = await http.post(
+        Uri.parse('https://mindmadetech.in/api/tickets/team/update'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          "ticketsId": ticketId.toString(),
+          "Adm_UpdatedOn": formatter.format(DateTime.now()),
+          "Adm_UpdatedBy": currentUser,
+          "teamId": ids
+        }),
+      );
+      if (res.statusCode == 200) {
+        if (res.body
+            .contains("Ticket assigned successfully")) {
+          Navigator.pop(context);
+          setState(() {
+            ids = ids.toSet().toList();
+            for (int i = 0; i < ids.length; i++) {
+              teamsIndex.add(teamsNamelist.indexWhere((element) =>
+              element['teamId'].toString() == ids[i].toString()));
+            }
+            teamsIndex.removeWhere((element) => element == -1);
+            teamsIndex = teamsIndex.toSet().toList();
+            print(teamsIndex);
+          });
+        } else {
+          Navigator.pop(context);
+        }
+      } else {
+        print(res.body);
+        Navigator.pop(context);
+      }
+    }catch(error){
+      //my code
+      Navigator.pop(context);
+    }
+  }
+
   Future<void> reAssignTeam() async{
     showAlert(context, "Please wait...");
     http.Response response = await http.put(
@@ -756,9 +842,22 @@ class _TicketViewPageState extends State<TicketViewPage> {
           behavior: SnackBarBehavior.floating,
         ));
         setState(() {
-            ids = [];
-            teamsIndex = [];
-            teams=[];
+           print('$ids');
+           print('$reId');
+            for(int i =0 ;i<ids.length;i++){
+              if(ids.toString().contains(reId[i].toString())){
+                ids.removeWhere((element) => element.toString() == reId[i].toString());
+              }
+            }
+            if(ids.isNotEmpty){
+              reAssignTrigger();
+            }else{
+              ids = [];
+              teamsIndex = [];
+              teams=[];
+            }
+            print('removed id... $ids');
+
         });
         print("here is ids..."+ids.toString() + teamsIndex.toString());
       }else{
@@ -802,6 +901,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
 
     setState(() {
       currentUser = pref.getString('usertypeMail') ?? '';
+      adm_created_on = pref.getString('admCreatedOn') ?? '';
       teams = tmAssignList.toList();
       fromAPI = pref.getStringList('Files')!;
       server = pref.getString('server') ?? '';
@@ -964,19 +1064,21 @@ class _TicketViewPageState extends State<TicketViewPage> {
                                         if (teamCheck[index] == true) {
                                           teamCheck[index] = false;
                                           teamsId.removeWhere((element) =>
-                                          element ==
-                                              teamsNamelist[index]['teamId']
-                                                  .toString());
+                                          element == teamsNamelist[index]['teamId'].toString());
+
+                                          teamsMailId.removeWhere((element) =>
+                                          element == teamsNamelist[index]['Email'].toString());
+
                                         } else {
                                           teamCheck[index] = true;
-                                          if (teamsId.contains(
-                                              teamsNamelist[index]['teamId']
-                                                  .toString())) {
+                                          if (teamsId.contains(teamsNamelist[index]['teamId'].toString())||
+                                             teamsMailId.contains(teamsNamelist[index]['Email'].toString())
+                                          ) {
                                             print('exists...');
                                           } else {
                                             teamsId.add(teamsNamelist[index]
-                                            ['teamId']
-                                                .toString());
+                                            ['teamId'].toString());
+                                            teamsMailId.add(teamsNamelist[index]['Email'].toString());
                                           }
                                         }
                                       });
@@ -1023,8 +1125,6 @@ class _TicketViewPageState extends State<TicketViewPage> {
 // TODO: implement initState
     super.initState();
     getPref();
-    String hi = "jiiiii\b";
-    print(hi);
     loadGivenData();
         () async {
       var _permissionStatus = await Permission.storage.status;
@@ -1175,6 +1275,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
                       Status.toLowerCase()!="completed"?
                       TextButton(
                         onPressed: () {
+                          print(reId);
                           setState(() {
                             confirmDialogTeamRe();
                           });
@@ -1187,7 +1288,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
                               size: 25,
                             ),
                             Text(
-                              ' Undo Assign!',
+                              ' Remove from Assign!',
                               style: TextStyle(
                                 color: Colors.red,
                               ),
@@ -1202,19 +1303,45 @@ class _TicketViewPageState extends State<TicketViewPage> {
                           physics: NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
                           itemBuilder: (context, index) {
-                            String userName = teamsNamelist[teamsIndex[index]]
-                            ["Email"]
-                                .toString();
+                            reAssigncheck.add(false);
+                            String userName = teamsNamelist[teamsIndex[index]]["Email"].toString();
                             return Column(
                               children: [
-                                ListTile(
-                                  leading: CircleAvatar(
-                                    child: Text(userName[0].toUpperCase()),
+                                CheckboxListTile(
+                                  activeColor: Colors.red,
+                                  onChanged: (bool? value){
+                                    print(reId);
+                                    print(reAssignselect);
+                                    setState(() {
+                                      if (reAssigncheck[index] == true) {
+                                        reAssigncheck[index] = false;
+                                        reId.removeWhere((element) =>
+                                        element == ids[index].toString());
+                                      }
+                                      else {
+                                        reAssigncheck[index] = true;
+                                        if(reId.contains(ids[index].toString())){
+                                          print('exists...');
+                                        }else{
+                                          reId.add(ids[index].toString());
+                                        }
+                                      }
+                                    });
+                                  },
+                                  title: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        child: Text(userName[0].toUpperCase()),
+                                      ),
+                                      SizedBox(width: 10,),
+                                      Text(
+                                        userName,
+                                        style: TextStyle(fontSize: 14),
+                                        maxLines: 1,
+                                      ),
+                                    ],
                                   ),
-                                  title: Text(
-                                    userName,
-                                    style: TextStyle(fontSize: 16),
-                                  ),
+                                  value: reAssigncheck[index],
                                 ),
                                 Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 10),
@@ -1377,12 +1504,26 @@ class _TicketViewPageState extends State<TicketViewPage> {
                           style: TextStyle(fontSize: 16, color: Colors.black),
                         ),
                       ),
-                      ListTile(
-                        title: Text('Ticket created on',
-                            style: TextStyle(fontSize: 15, color: Colors.black45)),
-                        subtitle: Text(
-                          '$createdOn',
-                          style: TextStyle(fontSize: 16, color: Colors.black),
+                      Visibility(
+                        visible: createdOn!="null"?true:false,
+                        child: ListTile(
+                          title: Text('Ticket created on',
+                              style: TextStyle(fontSize: 15, color: Colors.black45)),
+                          subtitle: Text(
+                            '$createdOn',
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                          ),
+                        ),
+                      ),
+                      Visibility(
+                        visible: adm_created_on!="null"?true:false,
+                        child: ListTile(
+                          title: Text('Ticket created on',
+                              style: TextStyle(fontSize: 15, color: Colors.black45)),
+                          subtitle: Text(
+                            'by Admin $adm_created_on',
+                            style: TextStyle(fontSize: 16, color: Colors.black),
+                          ),
                         ),
                       ),
                     ],
@@ -1473,41 +1614,6 @@ class _TicketViewPageState extends State<TicketViewPage> {
                       style: TextStyle(fontSize: 15, color: Colors.black45),
                     ),
                     children: <Widget>[
-                      // userType=='admin'?Column(
-                      //   children: [
-                      //     Text('Assigned Teams', style: TextStyle(fontSize: 17.0)),
-                      //     SizedBox(height: 10,),
-                      //     Container(
-                      //       child: Table(
-                      //         defaultColumnWidth: FixedColumnWidth(90.0),
-                      //         border: TableBorder.all(
-                      //             color: Colors.black,
-                      //             style: BorderStyle.solid,
-                      //             width: 1),
-                      //         children: [
-                      //           TableRow( children: [
-                      //             Column(children:[Text('Server', style: TextStyle(fontSize: 13.0))]),
-                      //             Column(children:[Text('SEO', style: TextStyle(fontSize: 13.0))]),
-                      //             Column(children:[Text('Design', style: TextStyle(fontSize: 13.0))]),
-                      //             Column(children:[Text('Development', style: TextStyle(fontSize: 13.0))]),
-                      //           ]),
-                      //           TableRow( children: [
-                      //             Column(children:[
-                      //               server=="y"?Icon(Icons.done,color: Colors.green,):
-                      //                       Icon(Icons.close,color: Colors.red,)
-                      //             ]),
-                      //             Column(children:[seo=="y"?Icon(Icons.done,color: Colors.green,):
-                      //             Icon(Icons.close,color: Colors.red,)]),
-                      //             Column(children:[design=="y"?Icon(Icons.done,color: Colors.green,):
-                      //             Icon(Icons.close,color: Colors.red,)]),
-                      //             Column(children:[development=="y"?Icon(Icons.done,color: Colors.green,):
-                      //             Icon(Icons.close,color: Colors.red,)]),
-                      //           ]),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ):Container(),
                       ListTile(
                         title: Text('Team Started On',
                             style: TextStyle(fontSize: 15, color: Colors.black45)),

@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server/gmail.dart';
+import 'package:mailer/smtp_server.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Register extends StatefulWidget {
@@ -117,7 +117,7 @@ class _RegisterState extends State<Register> {
         new Map<String, dynamic>.from(jsonDecode(response.body));
         print(map['message'].toString());
         if (map['message'].toString() == "Request sent successfully") {
-          setState((){
+          setState(() {
             regmail();
             pref.setString('unregmailid',email);
             loadPrefs();
@@ -134,7 +134,7 @@ class _RegisterState extends State<Register> {
               SnackBar(
                 content: Row(
                   children: [
-                    Icon(Icons.done_all,color:Colors.white),
+                    Icon(Icons.done_all,color: Colors.white,),
                     Text(' Ticket Created!'),
                   ],
                 ),
@@ -150,7 +150,7 @@ class _RegisterState extends State<Register> {
               SnackBar(
                 content: Row(
                   children: [
-                    Icon(Icons.announcement_sharp,color:Colors.white),
+                    Icon(Icons.announcement_sharp,color: Colors.white,),
                     Text('Email already Exists'),
                   ],
                 ),
@@ -241,36 +241,49 @@ class _RegisterState extends State<Register> {
 
 //send approve mail
   Future<void> regmail() async {
-    String username = 'durgadevi@mindmade.in';
-    String password = 'Appu#001';
-
-    final smtpServer = gmail(username, password);
-    final equivalentMessage = Message()
-      ..from = Address(username, 'DurgaDevi')
-      ..recipients.add(Address(mailController.text.toString()))
-      ..ccRecipients.addAll([Address('surya@mindmade.in'),'durgavenkatesh805@gmail.com'])
-    // ..bccRecipients.add('bccAddress@example.com')
-      ..subject = 'Your Ticket status (${formatter.format(DateTime.now())})'
-      ..text = ("Dear Sir/Madam,\n\n"
-          "Greetings from MindMade Customer Support Team!!!\n"
-          "Thank you for raising your queries with us.Our Admin verify your queries and we will reach you as soon as possible.\n\n"
-
-          "Thanks & Regards,\n"
-          "Mindmade."
-
-      );
-    // ..html = "<h1>Test</h1>\n<p>Hey! Here's some HTML content</p>";
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sending mail...'),
+        )
+    );
+    String splitName = mailController.text.toString().split('@').first;
     try {
-      await send(equivalentMessage, smtpServer);
-      print('Message sent: ' + send.toString());
-      Fluttertoast.showToast(msg: 'Approve send via mail');
+      SmtpServer smtpServer = SmtpServer('mindmadetech.in')
+        ..username = "_mainaccount@mindmadetech.in"
+        ..password = "1boQ[(6nYw6H.&_hQ&";
 
-    } on MailerException catch (e) {
-      print('Message not sent.');
-      for (var p in e.problems) {
-        print('Problem: ${p.code}: ${p.msg}');
-        Fluttertoast.showToast(msg:'Failed to send Approve');
+      final equivalentMessage = Message()
+        ..from = Address("support@mindmade.in")
+        ..recipients.add(Address(mailController.text.toString()))
+      // ..ccRecipients.addAll([Address('surya@mindmade.in'), 'durgavenkatesh805@gmail.com'])
+      // ..bccRecipients.add('bccAddress@example.com')
+        ..subject = 'Mindmade Support'
+        ..html= "<h3> Dear ${splitName[0].toUpperCase()}</h3>"
+            "<p>Greetings from MindMade Customer Support Team!!!</p>"
+            "<p>Thank you for raising your queries with us.Our Admin verify your queries and we will reach you as soon as possible.</p>"
+            "<b>Thanks & Regards,</b><br>"
+            "<b>MindMade</b>";
+      try {
+        await send(equivalentMessage, smtpServer);
+        print('Message sent: ' + send.toString());
+        Fluttertoast.showToast(
+            msg: 'Mail sent!',
+            backgroundColor: Colors.green);
+      } on MailerException catch (e) {
+        print('Message not sent.');
+        for (var p in e.problems) {
+          print('Problem: ${p.code}: ${p.msg}');
+          // Fluttertoast.showToast(
+          //     msg: 'Failed to send Approve',
+          //     backgroundColor: Colors.red);
+        }
       }
+    } catch (ex) {
+      print(ex);
+      Fluttertoast.showToast(
+          msg: 'Failed to send Approve',
+          backgroundColor: Colors.red);
+
     }
   }
 //
@@ -336,7 +349,7 @@ class _RegisterState extends State<Register> {
     super.initState();
     Future.delayed(
         Duration.zero, () async {
-        loadPrefs();
+      loadPrefs();
     });
   }
   @override
@@ -503,43 +516,43 @@ class _RegisterState extends State<Register> {
                       ),
                       SizedBox(height:10,),
                       Container(
-                        alignment: Alignment.centerRight,
-                        child: Container(
-                          margin: EdgeInsets.only(top: 15),
-                          height: 45,
-                          width: 100,
-                          child: RaisedButton(
-                            shape:RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20.0)
+                          alignment: Alignment.centerRight,
+                          child: Container(
+                            margin: EdgeInsets.only(top: 15),
+                            height: 45,
+                            width: 100,
+                            child: RaisedButton(
+                              shape:RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0)
+                              ),
+                              color: Colors.blue,
+                              onPressed: () {
+                                FocusScope.of(context).unfocus();
+                                if(Cmpname.text.isEmpty||Clientname.text.isEmpty||
+                                    pass.text.isEmpty||mailController.text.isEmpty||phnoController.text.isEmpty||domainController.text.isEmpty||dsController.text.isEmpty){
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        backgroundColor: red,
+                                        content: Row(
+                                          children: [
+                                            Icon(Icons.article,color: Colors.white,),
+                                            Text('Please fill all details'),
+                                          ],
+                                        ),
+                                        behavior: SnackBarBehavior.floating,
+                                      )
+                                  );
+                                } else{
+                                  AddTicket(Cmpname.text.toString(), Clientname.text.toString(),
+                                      pass.text.toString(), mailController.text.toString(), phnoController.text.toString(),
+                                      domainController.text.toString(), dsController.text.toString());
+                                }
+                              },
+                              child: Text('SUBMIT',style: TextStyle(
+                                  color: Colors.white
+                              ),),
                             ),
-                            color: Colors.blue,
-                            onPressed: () {
-                              FocusScope.of(context).unfocus();
-                              if(Cmpname.text.isEmpty||Clientname.text.isEmpty||
-                                  pass.text.isEmpty||mailController.text.isEmpty||phnoController.text.isEmpty||domainController.text.isEmpty||dsController.text.isEmpty){
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      backgroundColor: red,
-                                      content: Row(
-                                        children: [
-                                          Icon(Icons.article,color: Colors.white,),
-                                          Text('Please fill all details'),
-                                        ],
-                                      ),
-                                      behavior: SnackBarBehavior.floating,
-                                    )
-                                );
-                              } else{
-                                AddTicket(Cmpname.text.toString(), Clientname.text.toString(),
-                                    pass.text.toString(), mailController.text.toString(), phnoController.text.toString(),
-                                    domainController.text.toString(), dsController.text.toString());
-                              }
-                            },
-                            child: Text('SUBMIT',style: TextStyle(
-                              color: Colors.white
-                            ),),
-                          ),
-                        )
+                          )
                       ),
                     ],
                   ),
@@ -551,4 +564,6 @@ class _RegisterState extends State<Register> {
     );
   }
 }
+
+
 
