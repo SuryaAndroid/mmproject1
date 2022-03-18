@@ -103,9 +103,6 @@ class _TicketViewPageState extends State<TicketViewPage> {
   var contextTeam = [];
   List userNames = [];
   List teamsMailId = [];
-  List reAssignselect = [];
-  List<bool> reAssigncheck = [];
-  List reId = [];
   //endregion Variables
 
   //region Dialogs
@@ -315,14 +312,14 @@ class _TicketViewPageState extends State<TicketViewPage> {
       final equivalentMessage = Message()
         ..from = Address("support@mindmade.in")
         ..recipients.add(Address('$Email'))
-        // ..ccRecipients.addAll([
-        //   Address('surya@mindmade.in'),
-        // ])
-        // ..bccRecipients.add('bccAddress@example.com')
+      // ..ccRecipients.addAll([
+      //   Address('surya@mindmade.in'),
+      // ])
+      // ..bccRecipients.add('bccAddress@example.com')
         ..subject = 'Mindmade Support'
-         // ..text = "Dear Sir/Madam,\n\nGreetings from MindMade Customer Support Team!!! \n\n"
-         //     "Ticket(${ticketId}) have been assigned to you.kindly check the ticket details in Mindmade Customer Support portal.\n\n"
-         //     "Thanks & Regards, \nMindmade\n"
+      // ..text = "Dear Sir/Madam,\n\nGreetings from MindMade Customer Support Team!!! \n\n"
+      //     "Ticket(${ticketId}) have been assigned to you.kindly check the ticket details in Mindmade Customer Support portal.\n\n"
+      //     "Thanks & Regards, \nMindmade\n"
         ..html = "<h3>Dear ${splitName}</h3></br></br>"
             "<p>Greetings from MindMade Customer Support Team!!! <br><br>"
             "We're reaching out to you in regards to the ticket (#$ticketId) we completed for you.<br>"
@@ -400,9 +397,9 @@ class _TicketViewPageState extends State<TicketViewPage> {
       final equivalentMessage = Message()
         ..from = Address("support@mindmade.in")
         ..recipients.addAll(teamsMailId)
-        // ..ccRecipients.addAll([
-        //   Address('surya@mindmade.in'),
-        // ])
+      // ..ccRecipients.addAll([
+      //   Address('surya@mindmade.in'),
+      // ])
       // ..bccRecipients.add('bccAddress@example.com')
         ..subject = 'Mindmade Support'
       // ..text = "Dear Sir/Madam,\n\nGreetings from MindMade Customer Support Team!!! \n\n"
@@ -495,7 +492,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
                         Navigator.pop(context);
                         reAssignTeam();
                       },
-                      child: Text('Re Assign',
+                      child: Text('Remove',
                           style: TextStyle(fontSize: 16, color: Colors.red)))
                 ],
               ));
@@ -579,6 +576,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
             teamsId = teamsId + ids;
             ids = [];
             ids = ids + teamsId;
+            teamCheck = [];
             ids = ids.toSet().toList();
             for (int i = 0; i < ids.length; i++) {
               teamsIndex.add(teamsNamelist.indexWhere((element) =>
@@ -685,12 +683,12 @@ class _TicketViewPageState extends State<TicketViewPage> {
           Uri.parse('https://mindmadetech.in/api/tickets/status/update'));
       request.body = json.encode(
           {
-        "Status": val.toLowerCase(),
-        "ticketsId": ticketId,
-        "tickets_assignId": tmAssignList[0].ticketsAssignId,
-        fieldOn: formatter.format(DateTime.now()),
-        fieldBy: currentUser
-      });
+            "Status": val.toLowerCase(),
+            "ticketsId": ticketId,
+            "tickets_assignId": tmAssignList[0].ticketsAssignId,
+            fieldOn: formatter.format(DateTime.now()),
+            fieldBy: currentUser
+          });
       request.headers.addAll(headers);
       http.StreamedResponse response = await request.send();
       if (response.statusCode == 200) {
@@ -768,49 +766,6 @@ class _TicketViewPageState extends State<TicketViewPage> {
     print(userType);
   }
 
-  Future<void> reAssignTrigger() async{
-    showAlert(context, " Please wait...");
-    print(ids);
-    try{
-      http.Response res = await http.post(
-        Uri.parse('https://mindmadetech.in/api/tickets/team/update'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, dynamic>{
-          "ticketsId": ticketId.toString(),
-          "Adm_UpdatedOn": formatter.format(DateTime.now()),
-          "Adm_UpdatedBy": currentUser,
-          "teamId": ids
-        }),
-      );
-      if (res.statusCode == 200) {
-        if (res.body
-            .contains("Ticket assigned successfully")) {
-          Navigator.pop(context);
-          setState(() {
-            ids = ids.toSet().toList();
-            for (int i = 0; i < ids.length; i++) {
-              teamsIndex.add(teamsNamelist.indexWhere((element) =>
-              element['teamId'].toString() == ids[i].toString()));
-            }
-            teamsIndex.removeWhere((element) => element == -1);
-            teamsIndex = teamsIndex.toSet().toList();
-            print(teamsIndex);
-          });
-        } else {
-          Navigator.pop(context);
-        }
-      } else {
-        print(res.body);
-        Navigator.pop(context);
-      }
-    }catch(error){
-      //my code
-      Navigator.pop(context);
-    }
-  }
-
   Future<void> reAssignTeam() async{
     showAlert(context, "Please wait...");
     http.Response response = await http.put(
@@ -842,22 +797,9 @@ class _TicketViewPageState extends State<TicketViewPage> {
           behavior: SnackBarBehavior.floating,
         ));
         setState(() {
-           print('$ids');
-           print('$reId');
-            for(int i =0 ;i<ids.length;i++){
-              if(ids.toString().contains(reId[i].toString())){
-                ids.removeWhere((element) => element.toString() == reId[i].toString());
-              }
-            }
-            if(ids.isNotEmpty){
-              reAssignTrigger();
-            }else{
-              ids = [];
-              teamsIndex = [];
-              teams=[];
-            }
-            print('removed id... $ids');
-
+          ids = [];
+          teamsIndex = [];
+          teams=[];
         });
         print("here is ids..."+ids.toString() + teamsIndex.toString());
       }else{
@@ -1072,7 +1014,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
                                         } else {
                                           teamCheck[index] = true;
                                           if (teamsId.contains(teamsNamelist[index]['teamId'].toString())||
-                                             teamsMailId.contains(teamsNamelist[index]['Email'].toString())
+                                              teamsMailId.contains(teamsNamelist[index]['Email'].toString())
                                           ) {
                                             print('exists...');
                                           } else {
@@ -1125,6 +1067,8 @@ class _TicketViewPageState extends State<TicketViewPage> {
 // TODO: implement initState
     super.initState();
     getPref();
+    String hi = "jiiiii\b";
+    print(hi);
     loadGivenData();
         () async {
       var _permissionStatus = await Permission.storage.status;
@@ -1275,7 +1219,6 @@ class _TicketViewPageState extends State<TicketViewPage> {
                       Status.toLowerCase()!="completed"?
                       TextButton(
                         onPressed: () {
-                          print(reId);
                           setState(() {
                             confirmDialogTeamRe();
                           });
@@ -1288,7 +1231,7 @@ class _TicketViewPageState extends State<TicketViewPage> {
                               size: 25,
                             ),
                             Text(
-                              ' Remove from Assign!',
+                              ' Remove Assigned!',
                               style: TextStyle(
                                 color: Colors.red,
                               ),
@@ -1303,45 +1246,19 @@ class _TicketViewPageState extends State<TicketViewPage> {
                           physics: NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
                           itemBuilder: (context, index) {
-                            reAssigncheck.add(false);
-                            String userName = teamsNamelist[teamsIndex[index]]["Email"].toString();
+                            String userName = teamsNamelist[teamsIndex[index]]
+                            ["Email"]
+                                .toString();
                             return Column(
                               children: [
-                                CheckboxListTile(
-                                  activeColor: Colors.red,
-                                  onChanged: (bool? value){
-                                    print(reId);
-                                    print(reAssignselect);
-                                    setState(() {
-                                      if (reAssigncheck[index] == true) {
-                                        reAssigncheck[index] = false;
-                                        reId.removeWhere((element) =>
-                                        element == ids[index].toString());
-                                      }
-                                      else {
-                                        reAssigncheck[index] = true;
-                                        if(reId.contains(ids[index].toString())){
-                                          print('exists...');
-                                        }else{
-                                          reId.add(ids[index].toString());
-                                        }
-                                      }
-                                    });
-                                  },
-                                  title: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        child: Text(userName[0].toUpperCase()),
-                                      ),
-                                      SizedBox(width: 10,),
-                                      Text(
-                                        userName,
-                                        style: TextStyle(fontSize: 14),
-                                        maxLines: 1,
-                                      ),
-                                    ],
+                                ListTile(
+                                  leading: CircleAvatar(
+                                    child: Text(userName[0].toUpperCase()),
                                   ),
-                                  value: reAssigncheck[index],
+                                  title: Text(
+                                    userName,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 10),
@@ -1682,6 +1599,8 @@ class _TicketViewPageState extends State<TicketViewPage> {
             )));
   }
 }
+
+
 
 
 
